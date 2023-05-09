@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Delete ./csc-... to refresh the list of lib includes
+
+#dotnethome=`dirname "$0"`
+#dotnethome=`dirname \`which dotnet\``
+dotnethome="/usr/share/dotnet"
+sdkver=$(dotnet --version)
+fwkver=$(dotnet --list-runtimes | grep Microsoft.NETCore.App | awk '{printf("%s", $2)}')
+tfm="net${fwkver%.*}"
+dotnetlib=$dotnethome/packs/Microsoft.NETCore.App.Ref/$fwkver/ref/$tfm
+
+if [ "$#" -lt 1 ]; then
+	dotnet $dotnethome/sdk/$sdkver/Roslyn/bincore/csc.dll -help
+	exit 1
+fi
+if ! test -f "csc-$fwkver.rsp"; then
+  for f in  $dotnetlib/*.dll; do
+	echo -r:$(basename $f) >> "csc-$fwkver.rsp"
+  done
+fi
+
+for arg in "$@"
+do
+	if [[ "$arg" == *"out:"* ]]; then
+	  prog="${arg:5}"
+	  break
+	fi
+	if [[ "$arg" == *".cs" ]]; then
+	  prog="${arg%.*}.dll"
+	fi
+
+
+done
+dotnet $dotnethome/sdk/$sdkver/Roslyn/bincore/csc.dll -nologo -out:"$prog" -lib:"$dotnetlib" @csc-$fwkver.rsp $* 
+
+if [ $? -eq 0 ]; then
+  if test -f "$prog"; then
+    if [[ "$*" != *"t:library"* ]] && [[ "$*" != *"target:library"* ]]; then
+	if ! test -f "${prog%.*}.runtime.config"; then
+		echo "{
+  \"runtimeOptions\": {
+    \"framework\": {
+      \"name\": \"Microsoft.NETCore.App\",
+      \"version\": \"$fwkver\"
+    }
+  }
+}"  > "${prog%.*}.runtimeconfig.json"
+	fi
+    fi
+  fi
+fi
+
+

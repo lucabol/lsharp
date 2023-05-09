@@ -1,0 +1,57 @@
+#!/bin/bash
+DBGDIR=debug
+
+usage()
+{
+	echo "usage: lcsc [GCCFLAGS] file.cs" >&2
+	exit 1
+}
+
+for i
+do
+	case $i in
+	-*)
+		flags="$flags $i"
+    if [[ "$i" == "-g" ]]; then
+      debug=true
+    fi
+		;;
+	*)
+		if ! test -z $file
+		then
+			usage
+		fi
+		file=$i
+		;;
+	esac
+done
+
+if test -z $file
+then
+	usage
+fi
+
+PRE="${file%.*}"
+DBGNAME=`basename $PRE`
+
+debugbuild() {
+  sed '/^using .*;/d' $file > $DBGDIR/$DBGNAME.s1
+  sed '/class/,/{/d' $DBGDIR/$DBGNAME.s1 > $DBGDIR/$DBGNAME.s2
+  sed 's/\[\]/\*/g' $DBGDIR/$DBGNAME.s2 > $DBGDIR/$DBGNAME.s3
+  sed 'x;${s/}$//;p;x;};1d' $DBGDIR/$DBGNAME.s3 > $DBGDIR/$DBGNAME.s4
+  sed -e 's/\bMain\b/main/g' -e 's/\bstatic\b//g'  -e 's/\bpublic\b//g' $DBGDIR/$DBGNAME.s4 > $DBGDIR/$DBGNAME.s5
+
+
+  cat lcsc.h $DBGDIR/$DBGNAME.s5 > $DBGDIR/$DBGNAME.c
+  gcc $flags $DBGDIR/$DBGNAME.c
+}
+releasebuild() {
+  sed -e '/^using .*;/d' -e '/class/,/{/d' -e 's/\[\]/\*/g' -e 'x;${s/}$//;p;x;};1d' -e 's/\bMain\b/main/g' -e 's/\bstatic\b//g'  -e 's/\bpublic\b//g' < $file |
+    cat lcsc.h - | gcc $flags -xc -
+}
+
+if [ "$debug" ]; then
+  debugbuild
+else
+  releasebuild
+fi
