@@ -54,8 +54,11 @@
 %define lr.type ielr
 %define parse.error detailed
 %define parse.trace
+
 %define api.value.type { int }
+
 %glr-parser
+%expect 2
 
 %token NAMESPACE "namespace" USING "using" IDENTIFIER "identifier" CONSTANT "constant" STRING_LITERAL "string literal" SIZEOF "sizeof"
 %token INC_OP "++" DEC_OP "--" LEFT_OP "<<" RIGHT_OP ">>" LE_OP "<=" GE_OP ">=" EQ_OP "==" NE_OP "!="
