@@ -125,6 +125,7 @@ valuetype
 
 slicetype
   : valuetype SLICESYM
+  | valuetype '[' expr_list ']'
   ;
 
 decl
@@ -139,12 +140,8 @@ assign_list
 assign
   : IDENTIFIER '=' expr
   | IDENTIFIER '=' '{' expr_list '}'
-  | IDENTIFIER '=' "new" valuetype '[' constexpr ']'
+  | IDENTIFIER '=' "new" valuetype '[' expr ']'
   ;
-
-constexpr
-  : CONSTANT
-  | "sizeof" '(' type ')'
 
 func
   : type IDENTIFIER '(' param_list ')' block
