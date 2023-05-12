@@ -145,7 +145,7 @@ func
   ;
 
 funccall
-  : IDENTIFIER '(' ')'
+  : IDENTIFIER '(' expr_list ')'
   ;
 
 param_list
@@ -156,6 +156,12 @@ param_list
 
 paramdecl
   : type IDENTIFIER
+  ;
+
+expr_list
+  : %empty
+  | expr
+  | expr_list ',' expr
   ;
 
 block
