@@ -48,6 +48,8 @@ IS			(u|U|l|L)*
 "switch"		{ return(SWITCH); }
 "while"			{ return(WHILE); }
 
+"new"       { return(NEW); }
+
 "[]"        { return(SLICESYM); }
 
 {L}({L}|{D})*		  { return(check_type()); }

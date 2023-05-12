@@ -65,7 +65,7 @@
 %token ENUM "enum"
 %token CASE "case" DEFAULT "default" IF "if" ELSE "else" SWITCH "switch" WHILE "while" DO "do" FOR "for" GOTO "goto" CONTINUE "continue" BREAK "break" RETURN "return"
 
-%token SLICESYM "[]"
+%token SLICESYM "[]" NEW "new"
 
 %left ','
 %right '=' "+=" "-=" "*=" ">>=" "<<=" "&=" "^=" "|="
@@ -138,6 +138,8 @@ assign_list
 
 assign
   : IDENTIFIER '=' expr
+  | IDENTIFIER '=' '{' expr_list '}'
+  | IDENTIFIER '=' "new" valuetype '[' expr ']'
   ;
 
 func
