@@ -8,6 +8,9 @@
   #include "ulib/OsStdc.h"
   #include "ulib/OptGet.h"
 
+  #include "config.h"
+  #include "ast.h"
+
   int yylex (void);
   void yyerror (char const *);
 
@@ -21,98 +24,148 @@
   #define SPAN_IMPL
   #define BUFFER_IMPL
   #define OS_STDC_IMPL
+  #define AST_IMPL
+
   #include "ulib/Span.h"
   #include "ulib/Buffer.h"
   #include "ulib/OsStdc.h"
+  #include "ast.h"
 
   // Buffers for the header and code files for the generated code. Also for reading and writing the files.
-  #define MAXFILESIZE 1024 * 1024
   Byte  _code[MAXFILESIZE], _header[MAXFILESIZE], _infile[MAXFILESIZE];
 
   // Buffers to write to while parsing a file
   Buffer* code;
   Buffer* header;
 
-  #define P(...) BufferLCopy(code, __VA_ARGS__)
+  // Current namespace, used to generate mangled function names as namespace_funcname
+  Span namespace;
+
+  #define StL(...) BufferSLCopy(' ', code, __VA_ARGS__)
+  #define St(...)  BufferSCopy(' ', code, __VA_ARGS__)
+  #define Sp(...) BufferMCopy(' ', code, __VA_ARGS__)
+  #define SpL(...) BufferMLCopy(' ', code, __VA_ARGS__)
   #define K(v) (char*)SpanTo1KTempString(v)
+
+  #define NT(...) CreateSymbolA(SPAN0, (int[]) {__VA_ARGS__, -1})
+  #define T(name,...) CreateSymbolA(name, (int[]) {__VA_ARGS__, -1})
 }
 
-%define api.value.type {Span}
-
+%define lr.type ielr
+%define parse.lac full
 %define parse.error detailed
-%locations
+%define parse.trace
+%define api.value.type { int }
 
-%token NAMESPACE "namespace" USING "using" CLASS "class" PUBLIC "public" IDENTIFIER CONSTANT STRING_LITERAL SIZEOF
-%token PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
+%token NAMESPACE USING IDENTIFIER CONSTANT STRING_LITERAL SIZEOF
+%token INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
 %token XOR_ASSIGN OR_ASSIGN TYPE_NAME
-
-%token STATIC AUTO
-%token CHAR INT LONG FLOAT DOUBLE CONST VOID
-%token BOOL
-%token STRUCT ENUM ELLIPSIS
-
+%token ENUM ELLIPSIS
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
-%token TRUE FALSE
+%token SLICESYM
 
+%right '='
 %%
-compilation_unit
-  : namespace_declaration using_directives class_declaration
+
+translation_unit
+  : namespace_decl usings_list decl_or_func_list
   ;
 
-namespace_declaration
+namespace_decl
   : %empty
   | NAMESPACE IDENTIFIER ';'
   ;
 
-using_directive
-  : USING IDENTIFIER ';' { P("#include \"", K($2), ".h\"");}
-
-using_directives
+usings_list
   : %empty
-  | using_directives using_directive
+  | usings_list using_dir
   ;
 
-class_modifier
-  : STATIC
-  | PUBLIC  
+using_dir
+  : USING IDENTIFIER ';'
   ;
 
-class_modifiers
+decl_or_func_list
   : %empty
-  | class_modifiers class_modifier
+  | decl_or_func_list decl_or_func
   ;
 
-class_declaration
-  : %empty
-  | class_modifiers CLASS IDENTIFIER '{' class_body '}'
+decl_or_func
+  : decl
+  | func
+  ;
 
-class_body
+type
+  : valuetype
+  | slicetype
+  ;
+
+valuetype
+  : IDENTIFIER
+  | TYPE_NAME
+  ;
+
+slicetype
+  : valuetype SLICESYM
+  ;
+
+decl
+  : type IDENTIFIER ';'
+  | type assign assign_list ';'
+  ;
+
+assign_list
   : %empty
+  | assign_list ',' assign
+
+assign
+  : IDENTIFIER '=' expr
+  ;
+
+func
+  : type IDENTIFIER '(' ')' block
+
+block
+  : '{' stmts '}'
+  ;
+
+stmts
+  : %empty
+  | stmts stmt
+  ;
+
+stmt
+  : ';'
+  | block
+  | decl
+  | expr ';'
+  | WHILE '(' expr ')' block
+  | RETURN expr ';'
+  | IF '(' expr ')' block ELSE block
+  ;
+
+expr
+  : CONSTANT
   | IDENTIFIER
+  | assign
   ;
 
 %%
+
 #include <stdio.h>
 
 extern char yytext[];
-extern int column;
+extern int yylineno;
 
-/*
-void yyerror(const char *s)
-{
-	fflush(stdout);
-	printf("\n%*s\n%*s\n", column, "^", column, s);
-}
-*/
-
+static char* filename;
 
 void
 yyerror (char const *s)
 {
-  fprintf(stderr, "ERROR line %d: %s\n", yylloc.first_line, s);
+  printf("%s:Line: %i %s\n", filename, yylineno, s);
 }
 
 int parse(Buffer* codeBuffer, Buffer* headerBuffer) {
@@ -123,17 +176,25 @@ int parse(Buffer* codeBuffer, Buffer* headerBuffer) {
 
 int themain(int argc, char* argv[]) {
 
-  int k, index, optind = 0;
-  while ((k = getopt (argc, argv, "")) != -1) {
-
+  int k, index;
+  while ((k = getopt (argc, argv, "d")) != -1) {
+    switch(k) {
+      case 'd':
+        yydebug = 1;
+        break;
+      default:
+        abort();
+    }
   }
 
-  for (index = ++optind; index < argc; index++) {
+  for (index = optind; index < argc; index++) {
     Buffer c    = BufferInit(_code, MAXFILESIZE);
     Buffer h    = BufferInit(_header, MAXFILESIZE);
     Buffer file = BufferInit(_infile, MAXFILESIZE);
 
-    SpanResult sr = OsSlurp(argv[index], MAXFILESIZE, &file);
+    filename = argv[index];
+
+    SpanResult sr = OsSlurp(filename, MAXFILESIZE, &file);
 
     if(sr.error) {
       fprintf(stderr, "%s\n", sr.error);
@@ -148,11 +209,14 @@ int themain(int argc, char* argv[]) {
     biggerSpan.ptr[biggerSpan.len - 2] = 0;
     biggerSpan.ptr[biggerSpan.len - 1] = 0;
 
+    printf("%s\n", "----------");
+    printf("%s:\n", filename);
+    printf("%s\n\n", "----------");
+
     set_buffer(biggerSpan);
     int ret = parse(&c, &h);
     delete_buffer();
     
-    printf("%s:\n", argv[index]);
     OsPrintBuffer(&h);
     OsPrintBuffer(&c);
     puts("");

@@ -1,24 +1,25 @@
-namespace Hello;
 
-using System;
-using Threading;
+using KK;
 
-public static class Test
-{ }
-/*
-  static int[] ai = new int[] {1,2,4};
-  static int x = 1, y = 4, z = 2;
+Aldo k;
+int i;
 
-  static int Sum(int k, double r) {
-    return x + k + (int)r + z + y;
+double a = 3.3, b = 5.0, c = 4 ;
+
+Aldo KK() { 10;; }
+
+Ron[] r;
+
+Bob [] BB() {
+  while(10) {
+    Aldo a;
+    k = 3;
+    return a;
   }
-
-  static string fstringstring(string s) {
-    return s;
-  }
-  static int Main(string[] args) {
-    string s = fstringstring("bob");
-    return Sum(3, 5);
-  }
+  int j = 0x33;
+  return k;
 }
-*/
+
+double J() {
+  if(10) { ; } else { return a ;}
+}

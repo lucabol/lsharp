@@ -39,7 +39,7 @@
 # define YY_YY_LCS_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 0
+# define YYDEBUG 1
 #endif
 #if YYDEBUG
 extern int yydebug;
@@ -56,6 +56,9 @@ extern int yydebug;
   #include "ulib/OsStdc.h"
   #include "ulib/OptGet.h"
 
+  #include "config.h"
+  #include "ast.h"
+
   int yylex (void);
   void yyerror (char const *);
 
@@ -63,7 +66,7 @@ extern int yydebug;
   void set_buffer(Span s);
   void delete_buffer(void);
 
-#line 67 "lcs.tab.h"
+#line 70 "lcs.tab.h"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
@@ -74,91 +77,62 @@ extern int yydebug;
     YYEOF = 0,                     /* "end of file"  */
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
-    NAMESPACE = 258,               /* "namespace"  */
-    USING = 259,                   /* "using"  */
-    CLASS = 260,                   /* "class"  */
-    PUBLIC = 261,                  /* "public"  */
-    IDENTIFIER = 262,              /* IDENTIFIER  */
-    CONSTANT = 263,                /* CONSTANT  */
-    STRING_LITERAL = 264,          /* STRING_LITERAL  */
-    SIZEOF = 265,                  /* SIZEOF  */
-    PTR_OP = 266,                  /* PTR_OP  */
-    INC_OP = 267,                  /* INC_OP  */
-    DEC_OP = 268,                  /* DEC_OP  */
-    LEFT_OP = 269,                 /* LEFT_OP  */
-    RIGHT_OP = 270,                /* RIGHT_OP  */
-    LE_OP = 271,                   /* LE_OP  */
-    GE_OP = 272,                   /* GE_OP  */
-    EQ_OP = 273,                   /* EQ_OP  */
-    NE_OP = 274,                   /* NE_OP  */
-    AND_OP = 275,                  /* AND_OP  */
-    OR_OP = 276,                   /* OR_OP  */
-    MUL_ASSIGN = 277,              /* MUL_ASSIGN  */
-    DIV_ASSIGN = 278,              /* DIV_ASSIGN  */
-    MOD_ASSIGN = 279,              /* MOD_ASSIGN  */
-    ADD_ASSIGN = 280,              /* ADD_ASSIGN  */
-    SUB_ASSIGN = 281,              /* SUB_ASSIGN  */
-    LEFT_ASSIGN = 282,             /* LEFT_ASSIGN  */
-    RIGHT_ASSIGN = 283,            /* RIGHT_ASSIGN  */
-    AND_ASSIGN = 284,              /* AND_ASSIGN  */
-    XOR_ASSIGN = 285,              /* XOR_ASSIGN  */
-    OR_ASSIGN = 286,               /* OR_ASSIGN  */
-    TYPE_NAME = 287,               /* TYPE_NAME  */
-    STATIC = 288,                  /* STATIC  */
-    AUTO = 289,                    /* AUTO  */
-    CHAR = 290,                    /* CHAR  */
-    INT = 291,                     /* INT  */
-    LONG = 292,                    /* LONG  */
-    FLOAT = 293,                   /* FLOAT  */
-    DOUBLE = 294,                  /* DOUBLE  */
-    CONST = 295,                   /* CONST  */
-    VOID = 296,                    /* VOID  */
-    BOOL = 297,                    /* BOOL  */
-    STRUCT = 298,                  /* STRUCT  */
-    ENUM = 299,                    /* ENUM  */
-    ELLIPSIS = 300,                /* ELLIPSIS  */
-    CASE = 301,                    /* CASE  */
-    DEFAULT = 302,                 /* DEFAULT  */
-    IF = 303,                      /* IF  */
-    ELSE = 304,                    /* ELSE  */
-    SWITCH = 305,                  /* SWITCH  */
-    WHILE = 306,                   /* WHILE  */
-    DO = 307,                      /* DO  */
-    FOR = 308,                     /* FOR  */
-    GOTO = 309,                    /* GOTO  */
-    CONTINUE = 310,                /* CONTINUE  */
-    BREAK = 311,                   /* BREAK  */
-    RETURN = 312,                  /* RETURN  */
-    TRUE = 313,                    /* TRUE  */
-    FALSE = 314                    /* FALSE  */
+    NAMESPACE = 258,               /* NAMESPACE  */
+    USING = 259,                   /* USING  */
+    IDENTIFIER = 260,              /* IDENTIFIER  */
+    CONSTANT = 261,                /* CONSTANT  */
+    STRING_LITERAL = 262,          /* STRING_LITERAL  */
+    SIZEOF = 263,                  /* SIZEOF  */
+    INC_OP = 264,                  /* INC_OP  */
+    DEC_OP = 265,                  /* DEC_OP  */
+    LEFT_OP = 266,                 /* LEFT_OP  */
+    RIGHT_OP = 267,                /* RIGHT_OP  */
+    LE_OP = 268,                   /* LE_OP  */
+    GE_OP = 269,                   /* GE_OP  */
+    EQ_OP = 270,                   /* EQ_OP  */
+    NE_OP = 271,                   /* NE_OP  */
+    AND_OP = 272,                  /* AND_OP  */
+    OR_OP = 273,                   /* OR_OP  */
+    MUL_ASSIGN = 274,              /* MUL_ASSIGN  */
+    DIV_ASSIGN = 275,              /* DIV_ASSIGN  */
+    MOD_ASSIGN = 276,              /* MOD_ASSIGN  */
+    ADD_ASSIGN = 277,              /* ADD_ASSIGN  */
+    SUB_ASSIGN = 278,              /* SUB_ASSIGN  */
+    LEFT_ASSIGN = 279,             /* LEFT_ASSIGN  */
+    RIGHT_ASSIGN = 280,            /* RIGHT_ASSIGN  */
+    AND_ASSIGN = 281,              /* AND_ASSIGN  */
+    XOR_ASSIGN = 282,              /* XOR_ASSIGN  */
+    OR_ASSIGN = 283,               /* OR_ASSIGN  */
+    TYPE_NAME = 284,               /* TYPE_NAME  */
+    ENUM = 285,                    /* ENUM  */
+    ELLIPSIS = 286,                /* ELLIPSIS  */
+    CASE = 287,                    /* CASE  */
+    DEFAULT = 288,                 /* DEFAULT  */
+    IF = 289,                      /* IF  */
+    ELSE = 290,                    /* ELSE  */
+    SWITCH = 291,                  /* SWITCH  */
+    WHILE = 292,                   /* WHILE  */
+    DO = 293,                      /* DO  */
+    FOR = 294,                     /* FOR  */
+    GOTO = 295,                    /* GOTO  */
+    CONTINUE = 296,                /* CONTINUE  */
+    BREAK = 297,                   /* BREAK  */
+    RETURN = 298,                  /* RETURN  */
+    SLICESYM = 299                 /* SLICESYM  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef Span YYSTYPE;
+typedef  int  YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif
 
-/* Location type.  */
-#if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
-typedef struct YYLTYPE YYLTYPE;
-struct YYLTYPE
-{
-  int first_line;
-  int first_column;
-  int last_line;
-  int last_column;
-};
-# define YYLTYPE_IS_DECLARED 1
-# define YYLTYPE_IS_TRIVIAL 1
-#endif
-
 
 extern YYSTYPE yylval;
-extern YYLTYPE yylloc;
+
 
 int yyparse (void);
 
