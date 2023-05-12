@@ -9,6 +9,7 @@ double j = f();
 int[]  r = { 1, a, f(), a / 6};
 int[]  k = new double[33];
 int[3] k; 
+int k[12];
  
 Aldo KK(KK k, RR r) { 10;; F(b, 1 + 2); }
 

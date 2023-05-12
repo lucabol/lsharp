@@ -52,10 +52,10 @@
 }
 
 %define lr.type ielr
-%define parse.lac full
 %define parse.error detailed
 %define parse.trace
 %define api.value.type { int }
+%glr-parser
 
 %token NAMESPACE "namespace" USING "using" IDENTIFIER "identifier" CONSTANT "constant" STRING_LITERAL "string literal" SIZEOF "sizeof"
 %token INC_OP "++" DEC_OP "--" LEFT_OP "<<" RIGHT_OP ">>" LE_OP "<=" GE_OP ">=" EQ_OP "==" NE_OP "!="
@@ -129,8 +129,29 @@ slicetype
   ;
 
 decl
-  : type IDENTIFIER ';'
-  | type assign assign_list ';'
+  : valuedecl
+  | slicedecl
+  ;
+
+valuedecl
+  : valuetype IDENTIFIER ';'
+  | valuetype assign assign_list ';'
+  ;
+
+slicedecl
+  : slicetype IDENTIFIER ';'
+  | valuetype IDENTIFIER '[' expr ']' ';'
+  | slicetype sliceassign sliceassign_list ';'
+  ;
+
+sliceassign_list
+  : %empty
+  | sliceassign_list ',' sliceassign
+  ;
+
+sliceassign
+  : IDENTIFIER '=' '{' expr_list '}'
+  | IDENTIFIER '=' "new" valuetype '[' expr ']'
   ;
 
 assign_list
@@ -139,8 +160,6 @@ assign_list
 
 assign
   : IDENTIFIER '=' expr
-  | IDENTIFIER '=' '{' expr_list '}'
-  | IDENTIFIER '=' "new" valuetype '[' expr ']'
   ;
 
 func
