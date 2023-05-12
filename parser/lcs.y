@@ -139,8 +139,12 @@ assign_list
 assign
   : IDENTIFIER '=' expr
   | IDENTIFIER '=' '{' expr_list '}'
-  | IDENTIFIER '=' "new" valuetype '[' expr ']'
+  | IDENTIFIER '=' "new" valuetype '[' constexpr ']'
   ;
+
+constexpr
+  : CONSTANT
+  | "sizeof" '(' type ')'
 
 func
   : type IDENTIFIER '(' param_list ')' block
