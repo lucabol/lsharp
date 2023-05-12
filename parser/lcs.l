@@ -63,7 +63,6 @@ L?'(\\.|[^\\'])+'	{ return(CONSTANT); }
 
 L?\"(\\.|[^\\"])*\"	{ return(STRING_LITERAL); }
 
-"..."			{ return(ELLIPSIS); }
 ">>="			{ return(RIGHT_ASSIGN); }
 "<<="			{ return(LEFT_ASSIGN); }
 "+="			{ return(ADD_ASSIGN); }

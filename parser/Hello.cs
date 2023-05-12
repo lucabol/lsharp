@@ -22,4 +22,5 @@ Bob [] BB() {
 
 double J() {
   if(10) { ; } else { return a ;}
+  return z = 1 + 3.4 * (1 / BB()) - k;
 }

@@ -57,17 +57,32 @@
 %define parse.trace
 %define api.value.type { int }
 
-%token NAMESPACE USING IDENTIFIER CONSTANT STRING_LITERAL SIZEOF
-%token INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
-%token AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
-%token SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
-%token XOR_ASSIGN OR_ASSIGN TYPE_NAME
-%token ENUM ELLIPSIS
-%token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
+%token NAMESPACE "namespace" USING "using" IDENTIFIER "identifier" CONSTANT "constant" STRING_LITERAL "string literal" SIZEOF "sizeof"
+%token INC_OP "++" DEC_OP "--" LEFT_OP "<<" RIGHT_OP ">>" LE_OP "<=" GE_OP ">=" EQ_OP "==" NE_OP "!="
+%token AND_OP "&&" OR_OP "||" MUL_ASSIGN "*=" DIV_ASSIGN "/=" MOD_ASSIGN "%=" ADD_ASSIGN "+="
+%token SUB_ASSIGN "-=" LEFT_ASSIGN "<<=" RIGHT_ASSIGN ">>=" AND_ASSIGN "&="
+%token XOR_ASSIGN "^=" OR_ASSIGN "|=" TYPE_NAME "type name"
+%token ENUM "enum"
+%token CASE "case" DEFAULT "default" IF "if" ELSE "else" SWITCH "switch" WHILE "while" DO "do" FOR "for" GOTO "goto" CONTINUE "continue" BREAK "break" RETURN "return"
 
-%token SLICESYM
+%token SLICESYM "[]"
 
-%right '='
+%left ','
+%right '=' "+=" "-=" "*=" ">>=" "<<=" "&=" "^=" "|="
+%right "?:"
+%left "||"
+%left "&&"
+%left "|"
+%left "^"
+%left "&"
+%left "==" "!="
+%left ">" ">=" "<=" '<'
+%left ">>" "<<"
+%left '-' '+' '%'
+%left '*' '/'
+%right "sizeof" CAST "!" "~" NEG PREINCR PREDECR
+%left "." "[]" "[" "]" "(" ")" POSTINCR POSTDECR
+
 %%
 
 translation_unit
@@ -127,6 +142,11 @@ assign
 
 func
   : type IDENTIFIER '(' ')' block
+  ;
+
+funccall
+  : IDENTIFIER '(' ')'
+  ;
 
 block
   : '{' stmts '}'
@@ -151,6 +171,28 @@ expr
   : CONSTANT
   | IDENTIFIER
   | assign
+  | funccall
+  | '(' expr ')'
+  | expr '+' expr
+  | expr '-' expr
+  | expr '*' expr
+  | expr '/' expr
+  | expr '%' expr
+  | expr ">>" expr
+  | expr "<<" expr
+  | expr "<=" expr
+  | expr ">=" expr
+  | expr ">" expr
+  | expr '<' expr
+  | expr "==" expr
+  | expr "!=" expr
+  | expr "&" expr
+  | expr "|" expr
+  | expr "^" expr
+  | expr "&&" expr
+  | expr "||" expr
+  | '-' expr %prec NEG
+  | '+' expr %prec NEG
   ;
 
 %%
