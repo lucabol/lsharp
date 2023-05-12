@@ -141,11 +141,21 @@ assign
   ;
 
 func
-  : type IDENTIFIER '(' ')' block
+  : type IDENTIFIER '(' param_list ')' block
   ;
 
 funccall
   : IDENTIFIER '(' ')'
+  ;
+
+param_list
+  : %empty
+  | paramdecl
+  | param_list ',' paramdecl
+  ;
+
+paramdecl
+  : type IDENTIFIER
   ;
 
 block
