@@ -42,26 +42,14 @@ extern int yydebug;
 /* "%code requires" blocks.  */
 #line 1 "lcs.y"
 
-  #include <stdio.h>
-  #include <math.h>
-  #include <stdbool.h>
-
-  #include "ulib/Span.h"
-  #include "ulib/Buffer.h"
-  #include "ulib/OsStdc.h"
-  #include "ulib/OptGet.h"
-
   #include "config.h"
-  #include "ast.h"
-
-  int yylex (void);
   void yyerror (char const *);
 
   // Sets and delete the buffer from which to parse the code.
   void set_buffer(Span s);
   void delete_buffer(void);
 
-#line 65 "lcs.tab.h"
+#line 53 "lcs.tab.h"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE

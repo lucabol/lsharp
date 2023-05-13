@@ -1,16 +1,5 @@
 %code requires {
-  #include <stdio.h>
-  #include <math.h>
-  #include <stdbool.h>
-
-  #include "ulib/Span.h"
-  #include "ulib/Buffer.h"
-  #include "ulib/OsStdc.h"
-  #include "ulib/OptGet.h"
-
   #include "config.h"
-  #include "ast.h"
-
   int yylex (void);
   void yyerror (char const *);
 
@@ -20,17 +9,7 @@
 }
 
 %code top {
-
-  #define SPAN_IMPL
-  #define BUFFER_IMPL
-  #define OS_STDC_IMPL
-  #define AST_IMPL
-
-  #include "ulib/Span.h"
-  #include "ulib/Buffer.h"
-  #include "ulib/OsStdc.h"
-  #include "ast.h"
-
+  #include "config.h"
   // Buffers for the header and code files for the generated code. Also for reading and writing the files.
   Byte  _code[MAXFILESIZE], _header[MAXFILESIZE], _infile[MAXFILESIZE];
 

@@ -10,11 +10,7 @@ IS			(u|U|l|L)*
 %option fast
 
 %{
-  #include <stdio.h>
-  #include <stdbool.h>
   #include "lcs.tab.h"
-
-  #include "ulib/Span.h"
 
   void yyerror(const char *s);
   void comment(void);

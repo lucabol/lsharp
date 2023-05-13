@@ -50,19 +50,9 @@
 
 
 /* "%code top" blocks.  */
-#line 22 "lcs.y"
+#line 10 "lcs.y"
 
-
-  #define SPAN_IMPL
-  #define BUFFER_IMPL
-  #define OS_STDC_IMPL
-  #define AST_IMPL
-
-  #include "ulib/Span.h"
-  #include "ulib/Buffer.h"
-  #include "ulib/OsStdc.h"
-  #include "ast.h"
-
+  #include "config.h"
   // Buffers for the header and code files for the generated code. Also for reading and writing the files.
   Byte  _code[MAXFILESIZE], _header[MAXFILESIZE], _infile[MAXFILESIZE];
 
@@ -82,7 +72,7 @@
   #define NT(...) CreateSymbolA(SPAN0, (int[]) {__VA_ARGS__, -1})
   #define T(name,...) CreateSymbolA(name, (int[]) {__VA_ARGS__, -1})
 
-#line 86 "lcs.tab.c"
+#line 76 "lcs.tab.c"
 
 
 
@@ -549,14 +539,14 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    92,    92,    96,    97,   101,   102,   106,   110,   111,
-     115,   116,   120,   121,   125,   126,   130,   131,   135,   136,
-     140,   141,   145,   146,   147,   151,   152,   156,   157,   161,
-     162,   165,   169,   173,   177,   178,   179,   183,   187,   188,
-     189,   193,   197,   198,   202,   203,   204,   205,   206,   207,
-     208,   212,   213,   214,   215,   216,   217,   218,   219,   220,
-     221,   222,   223,   224,   225,   226,   227,   228,   229,   230,
-     231,   232,   233,   234,   235,   236
+       0,    70,    70,    74,    75,    79,    80,    84,    88,    89,
+      93,    94,    98,    99,   103,   104,   108,   109,   113,   114,
+     118,   119,   123,   124,   125,   129,   130,   134,   135,   139,
+     140,   143,   147,   151,   155,   156,   157,   161,   165,   166,
+     167,   171,   175,   176,   180,   181,   182,   183,   184,   185,
+     186,   190,   191,   192,   193,   194,   195,   196,   197,   198,
+     199,   200,   201,   202,   203,   204,   205,   206,   207,   208,
+     209,   210,   211,   212,   213,   214
 };
 #endif
 
@@ -1312,7 +1302,7 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
   switch (yyrule)
     {
 
-#line 1316 "lcs.tab.c"
+#line 1306 "lcs.tab.c"
 
       default: break;
     }
@@ -2994,7 +2984,7 @@ yypdumpstack (yyGLRStack* yystackp)
 
 
 
-#line 239 "lcs.y"
+#line 217 "lcs.y"
 
 
 #include <stdio.h>
