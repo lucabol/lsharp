@@ -5,6 +5,7 @@
 
 #include "config.h"
 #include "lcs.lex.h"
+#include "ast.h"
 
 // Buffers for the header and code files for the generated code. Also for reading and writing the files.
 // TODO: need to malloc different ones instead of using same one
@@ -14,6 +15,8 @@ void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg) {
   Env* env = yyget_extra(scanner);
   fprintf(stderr, "File:%s Line:%i Column:%i %s", env->filename, locp->first_line, locp->first_column, msg);
 }
+
+void visit(int node, Buffer* c, Buffer* h);
 
 int themain(int argc, char* argv[]) {
 
@@ -30,8 +33,6 @@ int themain(int argc, char* argv[]) {
 
   for (index = optind; index < argc; index++) {
     
-    Buffer c    = BufferInit(_code, MAXFILESIZE);
-    Buffer h    = BufferInit(_header, MAXFILESIZE);
     Buffer file = BufferInit(_infile, MAXFILESIZE);
 
     char* filename = argv[index];
@@ -39,8 +40,7 @@ int themain(int argc, char* argv[]) {
     SpanResult sr = OsSlurp(filename, MAXFILESIZE, &file);
 
     Env env = {
-      .code = &c,
-      .header = &h,
+      .startNode = -1,
       .filename = filename
     };
 
@@ -61,18 +61,23 @@ int themain(int argc, char* argv[]) {
     if(yydebug) yyset_debug(1, scanner);
 
     yylex_init_extra(&env, &scanner);
-
     YY_BUFFER_STATE state = yy_scan_buffer((char*)biggerSpan.ptr, (int)biggerSpan.len, scanner);
-
     int ret = yyparse(scanner);
-
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
-    
+    if(env.startNode < 0) {
+      puts("Error constructing the parse tree?");
+      return -1;
+    }
+
+    Buffer c    = BufferInit(_code, MAXFILESIZE);
+    Buffer h    = BufferInit(_header, MAXFILESIZE);
+
+    visit(env.startNode, &c, &h);
+
     OsPrintBuffer(&h);
     OsPrintBuffer(&c);
-    puts("");
     
     return ret;
   }

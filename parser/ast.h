@@ -1,18 +1,18 @@
 #ifndef AST_H
 #define AST_H
 
-#include "ulib/Span.h"
 #include "config.h"
 
-extern int   SymbolId[];
-extern Byte* SymbolName[];
-extern Size  SymbolLen[];
-extern int   SymbolFirstChild[];
+extern int    NodeId[];
+extern Kind   NodeKind[];
+extern char*  NodeName[];
+extern int    NodeLen[];
+extern int    NodeFirstChild[];
 
 extern int   NextChild;
 extern int   NextId;
 
-extern int   SymbolChildren[];
+extern int   NodeChildren[];
 
 inline void
 die(const char *msg) {
@@ -21,41 +21,58 @@ die(const char *msg) {
 }
 
 inline int
-CreateSymbolA(Span name, int children[]) {
+CreateNTA(Kind kind, int children[]) {
   if(NextId >= MAXSYMBOLS - 1)
-    die("The program is too big. AST not big enough.");
+    die("Error creating NT node. The program is too big. AST not big enough.");
 
   int id = NextId++; 
-  SymbolName[id]       = name.ptr;
-  SymbolLen[id]        = name.len;
-  SymbolFirstChild[id] = NextChild;
+  NodeKind[id]       = kind;
+  NodeName[id]       = 0;
+  NodeLen[id]        = -1;
+  NodeFirstChild[id] = NextChild;
 
   for(int i = 0; children[i] >= 0; i++) {
     if(NextChild >= MAXSYMBOLS * 10 - 1)
-      die("The program is too big. AST not big enough.");
+      die("Error creating NT child node. The program is too big. AST not big enough.");
 
-    SymbolChildren[NextChild++] = children[i];
+    NodeChildren[NextChild++] = children[i];
   }
-  SymbolChildren[NextChild++] = -1;
+  NodeChildren[NextChild++] = -1;
 
   return id;
 }
 
+#define CreateNt(kind, ...) CreateNTA(kind, (int[]) {__VA_ARGS__, -1})
 
+inline int
+CreateToken(char* ptr, int len) {
+  if(NextId >= MAXSYMBOLS - 1)
+    die("Error creating Token node. The program is too big. AST not big enough.");
+
+  int id = NextId++; 
+  NodeKind[id]       = Token;
+  NodeName[id]       = ptr;
+  NodeLen[id]        = len;
+  NodeFirstChild[id] = -1;
+
+  return id;
+}
 #endif // Header file
 
 #ifdef AST_IMPL
 
-int   SymbolId[MAXSYMBOLS];
-Byte* SymbolName[MAXSYMBOLS];
-Size  SymbolLen[MAXSYMBOLS];
-int   SymbolFirstChild[MAXSYMBOLS];
+int   NodeId[MAXSYMBOLS];
+Kind  NodeKind[MAXSYMBOLS];
+char* NodeName[MAXSYMBOLS];
+int  NodeLen[MAXSYMBOLS];
+int   NodeFirstChild[MAXSYMBOLS];
 
-int   SymbolChildren[MAXSYMBOLS * 10];
+int   NodeChildren[MAXSYMBOLS * 10];
 
 int   NextChild;
 int   NextId;
 
-int CreateSymbolA(Span name, int children[]);
+int CreateNTA(Kind kind, int children[]);
+int CreateToken(char* ptr, int len);
 void die(const char *msg);
 #endif

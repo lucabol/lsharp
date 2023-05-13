@@ -5,6 +5,10 @@ E			[Ee][+-]?{D}+
 FS			(f|F|l|L)
 IS			(u|U|l|L)*
 
+ucn        ((\\u([[:xdigit:]]{4}))|(\\U([[:xdigit:]]{8})))
+nondigit    [_[:alpha:]]
+c99_id     ([_[:alpha:]]|{ucn})([_[:alnum:]]|{ucn})*
+
 %option noyywrap
 %option fast
 
@@ -16,11 +20,13 @@ IS			(u|U|l|L)*
 
 %{
   #include "config.h"
+  #include "ast.h"
 
   int check_type(void);
 
 
 #define YY_USER_ACTION \
+    *yylval = CreateToken(yytext, yyleng); \
     yylloc->first_line = yylloc->last_line; \
     yylloc->first_column = yylloc->last_column; \
     for(int i = 0; yytext[i] != '\0'; i++) { \

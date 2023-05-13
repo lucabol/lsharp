@@ -13,7 +13,7 @@ function clean {    # Clean things
 function build {    # Build stuff
    flex lcs.l
    bison -d lcs.y
-   gcc -Wall -Wextra $CFLAGS lcs.tab.c lex.yy.c main.c -o lcs
+   gcc -Wall -Wextra $CFLAGS lcs.tab.c lex.yy.c visit.c main.c -o lcs
 }
 
 function run {    # Runs something

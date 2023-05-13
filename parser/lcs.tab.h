@@ -42,11 +42,9 @@ extern int yydebug;
 /* "%code requires" blocks.  */
 #line 1 "lcs.y"
 
-  #include "ulib/Span.h"
-
   typedef void* yyscan_t;
 
-#line 50 "lcs.tab.h"
+#line 48 "lcs.tab.h"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE

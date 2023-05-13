@@ -1,27 +1,11 @@
 %code requires {
-  #include "ulib/Span.h"
-
   typedef void* yyscan_t;
 }
 
 %code top {
   #include "config.h"
   #include "lcs.lex.h"
-
-  // Current namespace, used to generate mangled function names as namespace_funcname
-  Span namespace;
-
-  #define StL(...) BufferSLCopy(' ', code, __VA_ARGS__)
-  #define St(...)  BufferSCopy(' ', code, __VA_ARGS__)
-  #define Sp(...) BufferMCopy(' ', code, __VA_ARGS__)
-  #define SpL(...) BufferMLCopy(' ', code, __VA_ARGS__)
-  #define K(v) (char*)SpanTo1KTempString(v)
-
-  #define NT(...) CreateSymbolA(SPAN0, (int[]) {__VA_ARGS__, -1})
-  #define T(name,...) CreateSymbolA(name, (int[]) {__VA_ARGS__, -1})
-}
-%code {
-  void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg);
+  #include "ast.h"
 }
 
 %define locations
@@ -63,29 +47,39 @@
 %right "sizeof" CAST "!" "~" NEG PREINCR PREDECR
 %left "." "[]" "[" "]" "(" ")" POSTINCR POSTDECR
 
+%code {
+  void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg);
+
+  #define NT(vv,...) vv = CreateNt(Generic, __VA_ARGS__); 
+}
+
 %%
 
 translation_unit
-  : namespace_decl usings_list decl_or_func_list
+  : namespace_decl usings_list decl_or_func_list {
+    NT($$,$1,$2,$3)
+    Env* env = yyget_extra(scanner);
+    env->startNode = $$;
+    }
   ;
 
 namespace_decl
   : %empty
-  | NAMESPACE IDENTIFIER ';'
+  | NAMESPACE IDENTIFIER ';' { NT($$,$1,$2,$3) }
   ;
 
 usings_list
   : %empty
-  | usings_list using_dir
+  | usings_list using_dir { NT($$,$1,$2) }
   ;
 
 using_dir
-  : USING IDENTIFIER ';'
+  : USING IDENTIFIER ';' { NT($$,$1,$2,$3) }
   ;
 
 decl_or_func_list
   : %empty
-  | decl_or_func_list decl_or_func
+  | decl_or_func_list decl_or_func { NT($$,$1,$2) }
   ;
 
 decl_or_func
@@ -99,13 +93,13 @@ type
   ;
 
 valuetype
-  : IDENTIFIER
+  : IDENTIFIER 
   | TYPE_NAME
   ;
 
 slicetype
-  : valuetype SLICESYM
-  | valuetype '[' expr_list ']'
+  : valuetype SLICESYM { NT($$,$1,$2) }
+  | valuetype '[' expr_list ']' { NT($$,$1,$2,$3,$4) }
   ;
 
 decl
@@ -114,75 +108,75 @@ decl
   ;
 
 valuedecl
-  : valuetype IDENTIFIER ';'
-  | valuetype assign assign_list ';'
+  : valuetype IDENTIFIER ';' { NT($$,$1,$2,$3) }
+  | valuetype assign assign_list ';' { NT($$,$1,$2,$3,$4) }
   ;
 
 slicedecl
-  : slicetype IDENTIFIER ';'
-  | valuetype IDENTIFIER '[' expr ']' ';'
-  | slicetype sliceassign sliceassign_list ';'
+  : slicetype IDENTIFIER ';' { NT($$,$1,$2,$3) }
+  | valuetype IDENTIFIER '[' expr ']' ';' { NT($$,$1,$2,$3,$4,$5,$6) }
+  | slicetype sliceassign sliceassign_list ';' { NT($$,$1,$2,$3,$4) }
   ;
 
 sliceassign_list
   : %empty
-  | sliceassign_list ',' sliceassign
+  | sliceassign_list ',' sliceassign { NT($$,$1,$2,$3) }
   ;
 
 sliceassign
-  : IDENTIFIER '=' '{' expr_list '}'
-  | IDENTIFIER '=' "new" valuetype '[' expr ']'
+  : IDENTIFIER '=' '{' expr_list '}' { NT($$,$1,$2,$3,$4,$5) }
+  | IDENTIFIER '=' "new" valuetype '[' expr ']' { NT($$,$1,$2,$3,$4,$5,$6,$7) }
   ;
 
 assign_list
   : %empty
-  | assign_list ',' assign
+  | assign_list ',' assign { NT($$,$1,$2,$3) }
 
 assign
-  : IDENTIFIER '=' expr
+  : IDENTIFIER '=' expr { NT($$,$1,$2,$3) }
   ;
 
 func
-  : type IDENTIFIER '(' param_list ')' block
+  : type IDENTIFIER '(' param_list ')' block { NT($$,$1,$2,$3,$4,$5,$6) }
   ;
 
 funccall
-  : IDENTIFIER '(' expr_list ')'
+  : IDENTIFIER '(' expr_list ')' { NT($$,$1,$2,$3,$4) }
   ;
 
 param_list
   : %empty
   | paramdecl
-  | param_list ',' paramdecl
+  | param_list ',' paramdecl { NT($$,$1,$2,$3) }
   ;
 
 paramdecl
-  : type IDENTIFIER
+  : type IDENTIFIER { NT($$,$1,$2) }
   ;
 
 expr_list
   : %empty
   | expr
-  | expr_list ',' expr
+  | expr_list ',' expr { NT($$,$1,$2,$3) }
   ;
 
 block
-  : '{' stmts '}'
+  : '{' stmts '}' { NT($$,$1,$2,$3) }
   ;
 
 stmts
   : %empty
-  | stmts stmt
+  | stmts stmt { NT($$,$1,$2) }
   ;
 
 stmt
   : ';'
   | block
   | decl
-  | expr ';'
-  | WHILE '(' expr ')' block
-  | RETURN expr ';'
-  | IF '(' expr ')' block ELSE block
+  | expr ';' { NT($$,$1,$2) }
+  | WHILE '(' expr ')' block { NT($$,$1,$2,$3,$4,$5) }
+  | RETURN expr ';' { NT($$,$1,$2,$3) }
+  | IF '(' expr ')' block ELSE block { NT($$,$1,$2,$3,$4,$5,$6,$7) }
   ;
 
 expr
@@ -190,27 +184,27 @@ expr
   | IDENTIFIER
   | assign
   | funccall
-  | '(' expr ')'
-  | expr '+' expr
-  | expr '-' expr
-  | expr '*' expr
-  | expr '/' expr
-  | expr '%' expr
-  | expr ">>" expr
-  | expr "<<" expr
-  | expr "<=" expr
-  | expr ">=" expr
-  | expr ">" expr
-  | expr '<' expr
-  | expr "==" expr
-  | expr "!=" expr
-  | expr "&" expr
-  | expr "|" expr
-  | expr "^" expr
-  | expr "&&" expr
-  | expr "||" expr
-  | '-' expr %prec NEG
-  | '+' expr %prec NEG
+  | '(' expr ')' { NT($$,$1,$2,$3) }
+  | expr '+' expr { NT($$,$1,$2,$3) }
+  | expr '-' expr { NT($$,$1,$2,$3) }
+  | expr '*' expr { NT($$,$1,$2,$3) }
+  | expr '/' expr { NT($$,$1,$2,$3) }
+  | expr '%' expr { NT($$,$1,$2,$3) }
+  | expr ">>" expr { NT($$,$1,$2,$3) }
+  | expr "<<" expr { NT($$,$1,$2,$3) }
+  | expr "<=" expr { NT($$,$1,$2,$3) }
+  | expr ">=" expr { NT($$,$1,$2,$3) }
+  | expr ">" expr { NT($$,$1,$2,$3) }
+  | expr '<' expr { NT($$,$1,$2,$3) }
+  | expr "==" expr { NT($$,$1,$2,$3) }
+  | expr "!=" expr { NT($$,$1,$2,$3) }
+  | expr "&" expr { NT($$,$1,$2,$3) }
+  | expr "|" expr { NT($$,$1,$2,$3) }
+  | expr "^" expr { NT($$,$1,$2,$3) }
+  | expr "&&" expr { NT($$,$1,$2,$3) }
+  | expr "||" expr { NT($$,$1,$2,$3) }
+  | '-' expr %prec NEG { NT($$,$1,$2) }
+  | '+' expr %prec NEG { NT($$,$1,$2) }
   ;
 
 %%
