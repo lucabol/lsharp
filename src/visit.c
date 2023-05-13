@@ -6,7 +6,7 @@ void visit(int node, Buffer* c, Buffer* h) {
       char* s = NodeName[node]; 
       int len = NodeLen[node];
       Span sp = SPAN((Byte*)s, len);
-      BufferMCopy(0, c, sp);
+      BufferMCopy(' ', c, sp);
   } else {
     int child = NodeFirstChild[node];
     while(true) {

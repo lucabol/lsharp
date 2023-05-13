@@ -6,7 +6,8 @@
 #dotnethome=`dirname \`which dotnet\``
 dotnethome="/usr/share/dotnet"
 sdkver=$(dotnet --version)
-fwkver=$(dotnet --list-runtimes | grep Microsoft.NETCore.App | awk '{printf("%s", $2)}')
+fwkver=$(dotnet --list-runtimes | grep Microsoft.NETCore.App | tac | head -n1 | awk '{printf("%s", $2)}')
+
 tfm="net${fwkver%.*}"
 dotnetlib=$dotnethome/packs/Microsoft.NETCore.App.Ref/$fwkver/ref/$tfm
 
@@ -14,9 +15,9 @@ if [ "$#" -lt 1 ]; then
 	dotnet $dotnethome/sdk/$sdkver/Roslyn/bincore/csc.dll -help
 	exit 1
 fi
-if ! test -f "csc-$fwkver.rsp"; then
+if ! test -f "misc/csc-$fwkver.rsp"; then
   for f in  $dotnetlib/*.dll; do
-	echo -r:$(basename $f) >> "csc-$fwkver.rsp"
+	echo -r:$(basename $f) >> "misc/csc-$fwkver.rsp"
   done
 fi
 
@@ -32,7 +33,7 @@ do
 
 
 done
-dotnet $dotnethome/sdk/$sdkver/Roslyn/bincore/csc.dll -nologo -out:"$prog" -lib:"$dotnetlib" @csc-$fwkver.rsp $* 
+dotnet $dotnethome/sdk/$sdkver/Roslyn/bincore/csc.dll -nologo -out:"$prog" -lib:"$dotnetlib" @misc/csc-$fwkver.rsp $* 
 
 if [ $? -eq 0 ]; then
   if test -f "$prog"; then
@@ -50,5 +51,3 @@ if [ $? -eq 0 ]; then
     fi
   fi
 fi
-
-

@@ -1,6 +1,8 @@
 #!/bin/bash
 
-TARGETS="Hello"
+set -e
+
+TARGETS=$(basename -s .cs -a $(ls ./test))
 TESTDIR="test"
 
 CSBIN="csbin"
@@ -17,12 +19,18 @@ function buildcs {    # Build CSharp
   mkdir -p $CSBIN
 
   for T in $TARGETS; do
-    ./dotnet-csc "$TESTDIR/$T.cs" -out:"$CSBIN/$T.dll"
+    echo "return main(); " | cat "$TESTDIR/$T.cs" - | ./dotnet-csc - -out:"$CSBIN/$T.dll"
   done
 }
 
-function buildd {    # Build C in debug mode
+function buildldriver {   # Build LSharp precompiler driver
+  pushd ./src > /dev/null
+  ./Taskfile build
+  cp lcs ../
+  popd > /dev/null
+}
 
+function buildd {    # Build C in debug mode
   mkdir -p $DBIN
 
   for T in $TARGETS; do
@@ -31,7 +39,6 @@ function buildd {    # Build C in debug mode
 }
 
 function buildr {    # Build C in release mode
-
   mkdir -p $RBIN
 
   for T in $TARGETS; do
@@ -42,21 +49,24 @@ function buildr {    # Build C in release mode
 function buildall {  # Build all version
   clean
 
+  buildldriver
   buildcs
   buildd
   buildr
 }
-function runall {    # Runs something
+function test {    # Runs something
   buildall
 
   for T in $TARGETS; do
-    dotnet "$CSBIN/$T.dll"; echo $?
-  done
-  for T in $TARGETS; do
-    "$DBIN/$T"; echo $?
-  done
-  for T in $TARGETS; do
-    "$RBIN/$T"; echo $?
+    R1=$(dotnet "$CSBIN/$T.dll")
+    R2=$($DBIN/$T)
+    R3=$($RBIN/$T)
+    if [ "$R1" = "$R2" ] && [ "$R2" = "$R3" ];
+    then
+      echo "OK: $T"
+    else
+      echo "ERROR: $T"
+    fi
   done
 }
 
