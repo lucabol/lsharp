@@ -42,14 +42,11 @@ extern int yydebug;
 /* "%code requires" blocks.  */
 #line 1 "lcs.y"
 
-  #include "config.h"
-  void yyerror (char const *);
+  #include "ulib/Span.h"
 
-  // Sets and delete the buffer from which to parse the code.
-  void set_buffer(Span s);
-  void delete_buffer(void);
+  typedef void* yyscan_t;
 
-#line 53 "lcs.tab.h"
+#line 50 "lcs.tab.h"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
@@ -119,9 +116,22 @@ typedef  int  YYSTYPE;
 # define YYSTYPE_IS_DECLARED 1
 #endif
 
+/* Location type.  */
+#if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
+typedef struct YYLTYPE YYLTYPE;
+struct YYLTYPE
+{
+  int first_line;
+  int first_column;
+  int last_line;
+  int last_column;
+};
+# define YYLTYPE_IS_DECLARED 1
+# define YYLTYPE_IS_TRIVIAL 1
+#endif
 
-extern YYSTYPE yylval;
 
-int yyparse (void);
+
+int yyparse (yyscan_t scanner);
 
 #endif /* !YY_YY_LCS_TAB_H_INCLUDED  */

@@ -1,21 +1,12 @@
 %code requires {
-  #include "config.h"
-  int yylex (void);
-  void yyerror (char const *);
+  #include "ulib/Span.h"
 
-  // Sets and delete the buffer from which to parse the code.
-  void set_buffer(Span s);
-  void delete_buffer(void);
+  typedef void* yyscan_t;
 }
 
 %code top {
   #include "config.h"
-  // Buffers for the header and code files for the generated code. Also for reading and writing the files.
-  Byte  _code[MAXFILESIZE], _header[MAXFILESIZE], _infile[MAXFILESIZE];
-
-  // Buffers to write to while parsing a file
-  Buffer* code;
-  Buffer* header;
+  #include "lcs.lex.h"
 
   // Current namespace, used to generate mangled function names as namespace_funcname
   Span namespace;
@@ -29,13 +20,20 @@
   #define NT(...) CreateSymbolA(SPAN0, (int[]) {__VA_ARGS__, -1})
   #define T(name,...) CreateSymbolA(name, (int[]) {__VA_ARGS__, -1})
 }
+%code {
+  void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg);
+}
 
-%define lr.type ielr
+%define locations
+%define api.pure
+%param { yyscan_t scanner }
+
 %define parse.error detailed
 %define parse.trace
 
 %define api.value.type { int }
 
+%define lr.type ielr
 %glr-parser
 %expect 2
 
@@ -216,77 +214,3 @@ expr
   ;
 
 %%
-
-#include <stdio.h>
-
-extern char yytext[];
-extern int yylineno;
-
-static char* filename;
-
-void
-yyerror (char const *s)
-{
-  printf("%s:Line: %i %s\n", filename, yylineno, s);
-}
-
-int parse(Buffer* codeBuffer, Buffer* headerBuffer) {
-  code = codeBuffer;
-  header = headerBuffer;
-  return yyparse();
-}
-
-int themain(int argc, char* argv[]) {
-
-  int k, index;
-  while ((k = getopt (argc, argv, "d")) != -1) {
-    switch(k) {
-      case 'd':
-        yydebug = 1;
-        break;
-      default:
-        abort();
-    }
-  }
-
-  for (index = optind; index < argc; index++) {
-    Buffer c    = BufferInit(_code, MAXFILESIZE);
-    Buffer h    = BufferInit(_header, MAXFILESIZE);
-    Buffer file = BufferInit(_infile, MAXFILESIZE);
-
-    filename = argv[index];
-
-    SpanResult sr = OsSlurp(filename, MAXFILESIZE, &file);
-
-    if(sr.error) {
-      fprintf(stderr, "%s\n", sr.error);
-      return -1;
-    }
-    // For flex, you need to add two 0 bytes at the end of the buffer to avoid copying the data.
-    if(sr.data.len > MAXFILESIZE - 2) {
-      fprintf(stderr, "%s\n", "File too big.");
-      return -1;
-    }
-    Span biggerSpan = SPAN(sr.data.ptr, sr.data.len + 2);
-    biggerSpan.ptr[biggerSpan.len - 2] = 0;
-    biggerSpan.ptr[biggerSpan.len - 1] = 0;
-
-    printf("%s\n", "----------");
-    printf("%s:\n", filename);
-    printf("%s\n\n", "----------");
-
-    set_buffer(biggerSpan);
-    int ret = parse(&c, &h);
-    delete_buffer();
-    
-    OsPrintBuffer(&h);
-    OsPrintBuffer(&c);
-    puts("");
-
-    if(ret) {
-      fprintf(stderr, "%s\n", "Parse error.");
-    }
-  }
-
-  return 0;
-}

@@ -46,19 +46,14 @@
 #define YYSKELETON_NAME "glr.c"
 
 /* Pure parsers.  */
-#define YYPURE 0
+#define YYPURE 1
 
 
 /* "%code top" blocks.  */
-#line 10 "lcs.y"
+#line 7 "lcs.y"
 
   #include "config.h"
-  // Buffers for the header and code files for the generated code. Also for reading and writing the files.
-  Byte  _code[MAXFILESIZE], _header[MAXFILESIZE], _infile[MAXFILESIZE];
-
-  // Buffers to write to while parsing a file
-  Buffer* code;
-  Buffer* header;
+  #include "lcs.lex.h"
 
   // Current namespace, used to generate mangled function names as namespace_funcname
   Span namespace;
@@ -72,7 +67,7 @@
   #define NT(...) CreateSymbolA(SPAN0, (int[]) {__VA_ARGS__, -1})
   #define T(name,...) CreateSymbolA(name, (int[]) {__VA_ARGS__, -1})
 
-#line 76 "lcs.tab.c"
+#line 71 "lcs.tab.c"
 
 
 
@@ -218,8 +213,19 @@ typedef enum yysymbol_kind_t yysymbol_kind_t;
    the default value of $$ to a zeroed-out value.  Since the default
    value is undefined, this behavior is technically correct.  */
 static YYSTYPE yyval_default;
+static YYLTYPE yyloc_default
+# if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
+  = { 1, 1, 1, 1 }
+# endif
+;
 
 
+/* Unqualified %code blocks.  */
+#line 23 "lcs.y"
+
+  void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg);
+
+#line 229 "lcs.tab.c"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -539,14 +545,14 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    70,    70,    74,    75,    79,    80,    84,    88,    89,
-      93,    94,    98,    99,   103,   104,   108,   109,   113,   114,
-     118,   119,   123,   124,   125,   129,   130,   134,   135,   139,
-     140,   143,   147,   151,   155,   156,   157,   161,   165,   166,
-     167,   171,   175,   176,   180,   181,   182,   183,   184,   185,
-     186,   190,   191,   192,   193,   194,   195,   196,   197,   198,
-     199,   200,   201,   202,   203,   204,   205,   206,   207,   208,
-     209,   210,   211,   212,   213,   214
+       0,    69,    69,    73,    74,    78,    79,    83,    87,    88,
+      92,    93,    97,    98,   102,   103,   107,   108,   112,   113,
+     117,   118,   122,   123,   124,   128,   129,   133,   134,   138,
+     139,   142,   146,   150,   154,   155,   156,   160,   164,   165,
+     166,   170,   174,   175,   179,   180,   181,   182,   183,   184,
+     185,   189,   190,   191,   192,   193,   194,   195,   196,   197,
+     198,   199,   200,   201,   202,   203,   204,   205,   206,   207,
+     208,   209,   210,   211,   212,   213
 };
 #endif
 
@@ -859,11 +865,43 @@ static const short yyconfl[] =
 };
 
 
+/* YYLLOC_DEFAULT -- Set CURRENT to span from RHS[1] to RHS[N].
+   If N is 0, then set CURRENT to the empty location which ends
+   the previous symbol: RHS[0] (always defined).  */
 
-YYSTYPE yylval;
+#ifndef YYLLOC_DEFAULT
+# define YYLLOC_DEFAULT(Current, Rhs, N)                                \
+    do                                                                  \
+      if (N)                                                            \
+        {                                                               \
+          (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;        \
+          (Current).first_column = YYRHSLOC (Rhs, 1).first_column;      \
+          (Current).last_line    = YYRHSLOC (Rhs, N).last_line;         \
+          (Current).last_column  = YYRHSLOC (Rhs, N).last_column;       \
+        }                                                               \
+      else                                                              \
+        {                                                               \
+          (Current).first_line   = (Current).last_line   =              \
+            YYRHSLOC (Rhs, 0).last_line;                                \
+          (Current).first_column = (Current).last_column =              \
+            YYRHSLOC (Rhs, 0).last_column;                              \
+        }                                                               \
+    while (0)
+#endif
 
-int yynerrs;
-int yychar;
+# define YYRHSLOC(Rhs, K) ((Rhs)[K].yystate.yyloc)
+
+
+
+#undef yynerrs
+#define yynerrs (yystackp->yyerrcnt)
+#undef yychar
+#define yychar (yystackp->yyrawchar)
+#undef yylval
+#define yylval (yystackp->yyval)
+#undef yylloc
+#define yylloc (yystackp->yyloc)
+
 
 enum { YYENOMEM = -2 };
 
@@ -953,6 +991,8 @@ struct yyGLRState
     /** Semantic value for this state.  */
     YYSTYPE yyval;
   } yysemantics;
+  /** Source location for this state.  */
+  YYLTYPE yyloc;
 };
 
 struct yyGLRStateSet
@@ -978,6 +1018,7 @@ struct yySemanticOption
   /** The lookahead for this reduction.  */
   int yyrawchar;
   YYSTYPE yyval;
+  YYLTYPE yyloc;
   /** Next sibling in chain of options.  To facilitate merging,
    *  options are chained in decreasing order by address.  */
   yySemanticOption* yynext;
@@ -992,7 +1033,13 @@ union yyGLRStackItem {
 
 struct yyGLRStack {
   int yyerrState;
+  /* To compute the location of the error token.  */
+  yyGLRStackItem yyerror_range[3];
 
+  int yyerrcnt;
+  int yyrawchar;
+  YYSTYPE yyval;
+  YYLTYPE yyloc;
 
   YYJMP_BUF yyexception_buffer;
   yyGLRStackItem* yyitems;
@@ -1008,10 +1055,10 @@ static void yyexpandGLRStack (yyGLRStack* yystackp);
 #endif
 
 _Noreturn static void
-yyFail (yyGLRStack* yystackp, const char* yymsg)
+yyFail (yyGLRStack* yystackp, YYLTYPE *yylocp, yyscan_t scanner, const char* yymsg)
 {
   if (yymsg != YY_NULLPTR)
-    yyerror (yymsg);
+    yyerror (yylocp, scanner, yymsg);
   YYLONGJMP (yystackp->yyexception_buffer, 1);
 }
 
@@ -1090,6 +1137,63 @@ yylhsNonterm (yyRuleNum yyrule)
   } while (0)
 
 
+/* YYLOCATION_PRINT -- Print the location on the stream.
+   This macro was not mandated originally: define only if we know
+   we won't break user code: when these are the locations we know.  */
+
+# ifndef YYLOCATION_PRINT
+
+#  if defined YY_LOCATION_PRINT
+
+   /* Temporary convenience wrapper in case some people defined the
+      undocumented and private YY_LOCATION_PRINT macros.  */
+#   define YYLOCATION_PRINT(File, Loc)  YY_LOCATION_PRINT(File, *(Loc))
+
+#  elif defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
+
+/* Print *YYLOCP on YYO.  Private, do not rely on its existence. */
+
+YY_ATTRIBUTE_UNUSED
+static int
+yy_location_print_ (FILE *yyo, YYLTYPE const * const yylocp)
+{
+  int res = 0;
+  int end_col = 0 != yylocp->last_column ? yylocp->last_column - 1 : 0;
+  if (0 <= yylocp->first_line)
+    {
+      res += YYFPRINTF (yyo, "%d", yylocp->first_line);
+      if (0 <= yylocp->first_column)
+        res += YYFPRINTF (yyo, ".%d", yylocp->first_column);
+    }
+  if (0 <= yylocp->last_line)
+    {
+      if (yylocp->first_line < yylocp->last_line)
+        {
+          res += YYFPRINTF (yyo, "-%d", yylocp->last_line);
+          if (0 <= end_col)
+            res += YYFPRINTF (yyo, ".%d", end_col);
+        }
+      else if (0 <= end_col && yylocp->first_column < end_col)
+        res += YYFPRINTF (yyo, "-%d", end_col);
+    }
+  return res;
+}
+
+#   define YYLOCATION_PRINT  yy_location_print_
+
+    /* Temporary convenience wrapper in case some people defined the
+       undocumented and private YY_LOCATION_PRINT macros.  */
+#   define YY_LOCATION_PRINT(File, Loc)  YYLOCATION_PRINT(File, &(Loc))
+
+#  else
+
+#   define YYLOCATION_PRINT(File, Loc) ((void) 0)
+    /* Temporary convenience wrapper in case some people defined the
+       undocumented and private YY_LOCATION_PRINT macros.  */
+#   define YY_LOCATION_PRINT  YYLOCATION_PRINT
+
+#  endif
+# endif /* !defined YYLOCATION_PRINT */
 
 
 
@@ -1099,10 +1203,12 @@ yylhsNonterm (yyRuleNum yyrule)
 
 static void
 yy_symbol_value_print (FILE *yyo,
-                       yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep)
+                       yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp, yyscan_t scanner)
 {
   FILE *yyoutput = yyo;
   YY_USE (yyoutput);
+  YY_USE (yylocationp);
+  YY_USE (scanner);
   if (!yyvaluep)
     return;
   YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
@@ -1117,12 +1223,14 @@ yy_symbol_value_print (FILE *yyo,
 
 static void
 yy_symbol_print (FILE *yyo,
-                 yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep)
+                 yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp, yyscan_t scanner)
 {
   YYFPRINTF (yyo, "%s %s (",
              yykind < YYNTOKENS ? "token" : "nterm", yysymbol_name (yykind));
 
-  yy_symbol_value_print (yyo, yykind, yyvaluep);
+  YYLOCATION_PRINT (yyo, yylocationp);
+  YYFPRINTF (yyo, ": ");
+  yy_symbol_value_print (yyo, yykind, yyvaluep, yylocationp, scanner);
   YYFPRINTF (yyo, ")");
 }
 
@@ -1131,14 +1239,14 @@ yy_symbol_print (FILE *yyo,
     if (yydebug)                                                        \
       {                                                                 \
         YY_FPRINTF ((stderr, "%s ", Title));                            \
-        yy_symbol_print (stderr, Kind, Value);        \
+        yy_symbol_print (stderr, Kind, Value, Location, scanner);        \
         YY_FPRINTF ((stderr, "\n"));                                    \
       }                                                                 \
   } while (0)
 
 static inline void
 yy_reduce_print (yybool yynormal, yyGLRStackItem* yyvsp, YYPTRDIFF_T yyk,
-                 yyRuleNum yyrule);
+                 yyRuleNum yyrule, yyscan_t scanner);
 
 # define YY_REDUCE_PRINT(Args)          \
   do {                                  \
@@ -1210,6 +1318,7 @@ yyfillin (yyGLRStackItem *yyvsp, int yylow0, int yylow1)
         /* The effect of using yyval or yyloc (in an immediate rule) is
          * undefined.  */
         yyvsp[i].yystate.yysemantics.yyfirstVal = YY_NULLPTR;
+      yyvsp[i].yystate.yyloc = s->yyloc;
       s = yyvsp[i].yystate.yypred = s->yypred;
     }
 }
@@ -1217,13 +1326,14 @@ yyfillin (yyGLRStackItem *yyvsp, int yylow0, int yylow1)
 
 /** If yychar is empty, fetch the next token.  */
 static inline yysymbol_kind_t
-yygetToken (int *yycharp)
+yygetToken (int *yycharp, yyGLRStack* yystackp, yyscan_t scanner)
 {
   yysymbol_kind_t yytoken;
+  YY_USE (scanner);
   if (*yycharp == YYEMPTY)
     {
       YY_DPRINTF ((stderr, "Reading a token\n"));
-      *yycharp = yylex ();
+      *yycharp = yylex (&yylval, &yylloc, scanner);
     }
   if (*yycharp <= YYEOF)
     {
@@ -1263,11 +1373,13 @@ yyfill (yyGLRStackItem *yyvsp, int *yylow, int yylow1, yybool yynormal)
 static YYRESULTTAG
 yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
               yyGLRStack* yystackp, YYPTRDIFF_T yyk,
-              YYSTYPE* yyvalp)
+              YYSTYPE* yyvalp, YYLTYPE *yylocp, yyscan_t scanner)
 {
   const yybool yynormal YY_ATTRIBUTE_UNUSED = yystackp->yysplitPoint == YY_NULLPTR;
   int yylow = 1;
   YY_USE (yyvalp);
+  YY_USE (yylocp);
+  YY_USE (scanner);
   YY_USE (yyk);
   YY_USE (yyrhslen);
 # undef yyerrok
@@ -1288,21 +1400,24 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
 # define YYFILL(N) yyfill (yyvsp, &yylow, (N), yynormal)
 # undef YYBACKUP
 # define YYBACKUP(Token, Value)                                              \
-  return yyerror (YY_("syntax error: cannot back up")),     \
+  return yyerror (yylocp, scanner, YY_("syntax error: cannot back up")),     \
          yyerrok, yyerr
 
   if (yyrhslen == 0)
     *yyvalp = yyval_default;
   else
     *yyvalp = yyvsp[YYFILL (1-yyrhslen)].yystate.yysemantics.yyval;
+  /* Default location. */
+  YYLLOC_DEFAULT ((*yylocp), (yyvsp - yyrhslen), yyrhslen);
+  yystackp->yyerror_range[1].yystate.yyloc = *yylocp;
   /* If yyk == -1, we are running a deferred action on a temporary
      stack.  In that case, YY_REDUCE_PRINT must not play with YYFILL,
      so pretend the stack is "normal". */
-  YY_REDUCE_PRINT ((yynormal || yyk == -1, yyvsp, yyk, yyrule));
+  YY_REDUCE_PRINT ((yynormal || yyk == -1, yyvsp, yyk, yyrule, scanner));
   switch (yyrule)
     {
 
-#line 1306 "lcs.tab.c"
+#line 1421 "lcs.tab.c"
 
       default: break;
     }
@@ -1341,9 +1456,11 @@ yyuserMerge (int yyn, YYSTYPE* yy0, YYSTYPE* yy1)
 
 static void
 yydestruct (const char *yymsg,
-            yysymbol_kind_t yykind, YYSTYPE *yyvaluep)
+            yysymbol_kind_t yykind, YYSTYPE *yyvaluep, YYLTYPE *yylocationp, yyscan_t scanner)
 {
   YY_USE (yyvaluep);
+  YY_USE (yylocationp);
+  YY_USE (scanner);
   if (!yymsg)
     yymsg = "Deleting";
   YY_SYMBOL_PRINT (yymsg, yykind, yyvaluep, yylocationp);
@@ -1361,11 +1478,11 @@ yyrhsLength (yyRuleNum yyrule)
 }
 
 static void
-yydestroyGLRState (char const *yymsg, yyGLRState *yys)
+yydestroyGLRState (char const *yymsg, yyGLRState *yys, yyscan_t scanner)
 {
   if (yys->yyresolved)
     yydestruct (yymsg, yy_accessing_symbol (yys->yylrState),
-                &yys->yysemantics.yyval);
+                &yys->yysemantics.yyval, &yys->yyloc, scanner);
   else
     {
 #if YYDEBUG
@@ -1387,7 +1504,7 @@ yydestroyGLRState (char const *yymsg, yyGLRState *yys)
           for (yyrh = yyoption->yystate, yyn = yyrhsLength (yyoption->yyrule);
                yyn > 0;
                yyrh = yyrh->yypred, yyn -= 1)
-            yydestroyGLRState (yymsg, yyrh);
+            yydestroyGLRState (yymsg, yyrh, scanner);
         }
     }
 }
@@ -1509,6 +1626,7 @@ yyaddDeferredAction (yyGLRStack* yystackp, YYPTRDIFF_T yyk, yyGLRState* yystate,
     {
       yynewOption->yyrawchar = yychar;
       yynewOption->yyval = yylval;
+      yynewOption->yyloc = yylloc;
     }
   else
     yynewOption->yyrawchar = YYEMPTY;
@@ -1724,7 +1842,7 @@ yyremoveDeletes (yyGLRStack* yystackp)
 static inline void
 yyglrShift (yyGLRStack* yystackp, YYPTRDIFF_T yyk, yy_state_t yylrState,
             YYPTRDIFF_T yyposn,
-            YYSTYPE* yyvalp)
+            YYSTYPE* yyvalp, YYLTYPE* yylocp)
 {
   yyGLRState* yynewState = &yynewGLRStackItem (yystackp, yytrue)->yystate;
 
@@ -1733,6 +1851,7 @@ yyglrShift (yyGLRStack* yystackp, YYPTRDIFF_T yyk, yy_state_t yylrState,
   yynewState->yyresolved = yytrue;
   yynewState->yypred = yystackp->yytops.yystates[yyk];
   yynewState->yysemantics.yyval = *yyvalp;
+  yynewState->yyloc = *yylocp;
   yystackp->yytops.yystates[yyk] = yynewState;
 
   YY_RESERVE_GLRSTACK (yystackp);
@@ -1767,9 +1886,10 @@ yyglrShiftDefer (yyGLRStack* yystackp, YYPTRDIFF_T yyk, yy_state_t yylrState,
 
 static inline void
 yy_reduce_print (yybool yynormal, yyGLRStackItem* yyvsp, YYPTRDIFF_T yyk,
-                 yyRuleNum yyrule)
+                 yyRuleNum yyrule, yyscan_t scanner)
 {
   int yynrhs = yyrhsLength (yyrule);
+  int yylow = 1;
   int yyi;
   YY_FPRINTF ((stderr, "Reducing stack %ld by rule %d (line %d):\n",
                YY_CAST (long, yyk), yyrule - 1, yyrline[yyrule]));
@@ -1781,7 +1901,8 @@ yy_reduce_print (yybool yynormal, yyGLRStackItem* yyvsp, YYPTRDIFF_T yyk,
       YY_FPRINTF ((stderr, "   $%d = ", yyi + 1));
       yy_symbol_print (stderr,
                        yy_accessing_symbol (yyvsp[yyi - yynrhs + 1].yystate.yylrState),
-                       &yyvsp[yyi - yynrhs + 1].yystate.yysemantics.yyval                       );
+                       &yyvsp[yyi - yynrhs + 1].yystate.yysemantics.yyval,
+                       &(YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL ((yyi + 1) - (yynrhs))].yystate.yyloc)                       , scanner);
       if (!yyvsp[yyi - yynrhs + 1].yystate.yyresolved)
         YY_FPRINTF ((stderr, " (unresolved)"));
       YY_FPRINTF ((stderr, "\n"));
@@ -1797,7 +1918,7 @@ yy_reduce_print (yybool yynormal, yyGLRStackItem* yyvsp, YYPTRDIFF_T yyk,
  *  for userAction.  */
 static inline YYRESULTTAG
 yydoAction (yyGLRStack* yystackp, YYPTRDIFF_T yyk, yyRuleNum yyrule,
-            YYSTYPE* yyvalp)
+            YYSTYPE* yyvalp, YYLTYPE *yylocp, yyscan_t scanner)
 {
   int yynrhs = yyrhsLength (yyrule);
 
@@ -1811,7 +1932,7 @@ yydoAction (yyGLRStack* yystackp, YYPTRDIFF_T yyk, yyRuleNum yyrule,
       yystackp->yyspaceLeft += yynrhs;
       yystackp->yytops.yystates[0] = & yystackp->yynextFree[-1].yystate;
       return yyuserAction (yyrule, yynrhs, yyrhs, yystackp, yyk,
-                           yyvalp);
+                           yyvalp, yylocp, scanner);
     }
   else
     {
@@ -1819,6 +1940,9 @@ yydoAction (yyGLRStack* yystackp, YYPTRDIFF_T yyk, yyRuleNum yyrule,
       yyGLRState* yys = yyrhsVals[YYMAXRHS + YYMAXLEFT].yystate.yypred
         = yystackp->yytops.yystates[yyk];
       int yyi;
+      if (yynrhs == 0)
+        /* Set default location.  */
+        yyrhsVals[YYMAXRHS + YYMAXLEFT - 1].yystate.yyloc = yys->yyloc;
       for (yyi = 0; yyi < yynrhs; yyi += 1)
         {
           yys = yys->yypred;
@@ -1827,7 +1951,7 @@ yydoAction (yyGLRStack* yystackp, YYPTRDIFF_T yyk, yyRuleNum yyrule,
       yyupdateSplit (yystackp, yys);
       yystackp->yytops.yystates[yyk] = yys;
       return yyuserAction (yyrule, yynrhs, yyrhsVals + YYMAXRHS + YYMAXLEFT - 1,
-                           yystackp, yyk, yyvalp);
+                           yystackp, yyk, yyvalp, yylocp, scanner);
     }
 }
 
@@ -1844,15 +1968,16 @@ yydoAction (yyGLRStack* yystackp, YYPTRDIFF_T yyk, yyRuleNum yyrule,
  */
 static inline YYRESULTTAG
 yyglrReduce (yyGLRStack* yystackp, YYPTRDIFF_T yyk, yyRuleNum yyrule,
-             yybool yyforceEval)
+             yybool yyforceEval, yyscan_t scanner)
 {
   YYPTRDIFF_T yyposn = yystackp->yytops.yystates[yyk]->yyposn;
 
   if (yyforceEval || yystackp->yysplitPoint == YY_NULLPTR)
     {
       YYSTYPE yyval;
+      YYLTYPE yyloc;
 
-      YYRESULTTAG yyflag = yydoAction (yystackp, yyk, yyrule, &yyval);
+      YYRESULTTAG yyflag = yydoAction (yystackp, yyk, yyrule, &yyval, &yyloc, scanner);
       if (yyflag == yyerr && yystackp->yysplitPoint != YY_NULLPTR)
         YY_DPRINTF ((stderr,
                      "Parse on stack %ld rejected by rule %d (line %d).\n",
@@ -1862,7 +1987,7 @@ yyglrReduce (yyGLRStack* yystackp, YYPTRDIFF_T yyk, yyRuleNum yyrule,
       yyglrShift (yystackp, yyk,
                   yyLRgotoState (yystackp->yytops.yystates[yyk]->yylrState,
                                  yylhsNonterm (yyrule)),
-                  yyposn, &yyval);
+                  yyposn, &yyval, &yyloc);
     }
   else
     {
@@ -2053,7 +2178,7 @@ yypreference (yySemanticOption* y0, yySemanticOption* y1)
 }
 
 static YYRESULTTAG
-yyresolveValue (yyGLRState* yys, yyGLRStack* yystackp);
+yyresolveValue (yyGLRState* yys, yyGLRStack* yystackp, yyscan_t scanner);
 
 
 /** Resolve the previous YYN states starting at and including state YYS
@@ -2063,14 +2188,14 @@ yyresolveValue (yyGLRState* yys, yyGLRStack* yystackp);
  *  data so that yydestroyGLRState can be invoked if necessary.  */
 static YYRESULTTAG
 yyresolveStates (yyGLRState* yys, int yyn,
-                 yyGLRStack* yystackp)
+                 yyGLRStack* yystackp, yyscan_t scanner)
 {
   if (0 < yyn)
     {
       YY_ASSERT (yys->yypred);
-      YYCHK (yyresolveStates (yys->yypred, yyn-1, yystackp));
+      YYCHK (yyresolveStates (yys->yypred, yyn-1, yystackp, scanner));
       if (! yys->yyresolved)
-        YYCHK (yyresolveValue (yys, yystackp));
+        YYCHK (yyresolveValue (yys, yystackp, scanner));
     }
   return yyok;
 }
@@ -2082,31 +2207,37 @@ yyresolveStates (yyGLRState* yys, int yyn,
  *  semantic values if invoked).  */
 static YYRESULTTAG
 yyresolveAction (yySemanticOption* yyopt, yyGLRStack* yystackp,
-                 YYSTYPE* yyvalp)
+                 YYSTYPE* yyvalp, YYLTYPE *yylocp, yyscan_t scanner)
 {
   yyGLRStackItem yyrhsVals[YYMAXRHS + YYMAXLEFT + 1];
   int yynrhs = yyrhsLength (yyopt->yyrule);
   YYRESULTTAG yyflag =
-    yyresolveStates (yyopt->yystate, yynrhs, yystackp);
+    yyresolveStates (yyopt->yystate, yynrhs, yystackp, scanner);
   if (yyflag != yyok)
     {
       yyGLRState *yys;
       for (yys = yyopt->yystate; yynrhs > 0; yys = yys->yypred, yynrhs -= 1)
-        yydestroyGLRState ("Cleanup: popping", yys);
+        yydestroyGLRState ("Cleanup: popping", yys, scanner);
       return yyflag;
     }
 
   yyrhsVals[YYMAXRHS + YYMAXLEFT].yystate.yypred = yyopt->yystate;
+  if (yynrhs == 0)
+    /* Set default location.  */
+    yyrhsVals[YYMAXRHS + YYMAXLEFT - 1].yystate.yyloc = yyopt->yystate->yyloc;
   {
     int yychar_current = yychar;
     YYSTYPE yylval_current = yylval;
+    YYLTYPE yylloc_current = yylloc;
     yychar = yyopt->yyrawchar;
     yylval = yyopt->yyval;
+    yylloc = yyopt->yyloc;
     yyflag = yyuserAction (yyopt->yyrule, yynrhs,
                            yyrhsVals + YYMAXRHS + YYMAXLEFT - 1,
-                           yystackp, -1, yyvalp);
+                           yystackp, -1, yyvalp, yylocp, scanner);
     yychar = yychar_current;
     yylval = yylval_current;
+    yylloc = yylloc_current;
   }
   return yyflag;
 }
@@ -2161,7 +2292,7 @@ yyreportTree (yySemanticOption* yyx, int yyindent)
 
 static YYRESULTTAG
 yyreportAmbiguity (yySemanticOption* yyx0,
-                   yySemanticOption* yyx1)
+                   yySemanticOption* yyx1, YYLTYPE *yylocp, yyscan_t scanner)
 {
   YY_USE (yyx0);
   YY_USE (yyx1);
@@ -2175,8 +2306,53 @@ yyreportAmbiguity (yySemanticOption* yyx0,
   YY_FPRINTF ((stderr, "\n"));
 #endif
 
-  yyerror (YY_("syntax is ambiguous"));
+  yyerror (yylocp, scanner, YY_("syntax is ambiguous"));
   return yyabort;
+}
+
+/** Resolve the locations for each of the YYN1 states in *YYSTACKP,
+ *  ending at YYS1.  Has no effect on previously resolved states.
+ *  The first semantic option of a state is always chosen.  */
+static void
+yyresolveLocations (yyGLRState *yys1, int yyn1,
+                    yyGLRStack *yystackp, yyscan_t scanner)
+{
+  if (0 < yyn1)
+    {
+      yyresolveLocations (yys1->yypred, yyn1 - 1, yystackp, scanner);
+      if (!yys1->yyresolved)
+        {
+          yyGLRStackItem yyrhsloc[1 + YYMAXRHS];
+          int yynrhs;
+          yySemanticOption *yyoption = yys1->yysemantics.yyfirstVal;
+          YY_ASSERT (yyoption);
+          yynrhs = yyrhsLength (yyoption->yyrule);
+          if (0 < yynrhs)
+            {
+              yyGLRState *yys;
+              int yyn;
+              yyresolveLocations (yyoption->yystate, yynrhs,
+                                  yystackp, scanner);
+              for (yys = yyoption->yystate, yyn = yynrhs;
+                   yyn > 0;
+                   yys = yys->yypred, yyn -= 1)
+                yyrhsloc[yyn].yystate.yyloc = yys->yyloc;
+            }
+          else
+            {
+              /* Both yyresolveAction and yyresolveLocations traverse the GSS
+                 in reverse rightmost order.  It is only necessary to invoke
+                 yyresolveLocations on a subforest for which yyresolveAction
+                 would have been invoked next had an ambiguity not been
+                 detected.  Thus the location of the previous state (but not
+                 necessarily the previous state itself) is guaranteed to be
+                 resolved already.  */
+              yyGLRState *yyprevious = yyoption->yystate;
+              yyrhsloc[0].yystate.yyloc = yyprevious->yyloc;
+            }
+          YYLLOC_DEFAULT ((yys1->yyloc), yyrhsloc, yynrhs);
+        }
+    }
 }
 
 /** Resolve the ambiguity represented in state YYS in *YYSTACKP,
@@ -2187,7 +2363,7 @@ yyreportAmbiguity (yySemanticOption* yyx0,
  *  result = yyok, YYS has been left with consistent data so that
  *  yydestroyGLRState can be invoked if necessary.  */
 static YYRESULTTAG
-yyresolveValue (yyGLRState* yys, yyGLRStack* yystackp)
+yyresolveValue (yyGLRState* yys, yyGLRStack* yystackp, yyscan_t scanner)
 {
   yySemanticOption* yyoptionList = yys->yysemantics.yyfirstVal;
   yySemanticOption* yybest = yyoptionList;
@@ -2195,6 +2371,7 @@ yyresolveValue (yyGLRState* yys, yyGLRStack* yystackp)
   yybool yymerge = yyfalse;
   YYSTYPE yyval;
   YYRESULTTAG yyflag;
+  YYLTYPE *yylocp = &yys->yyloc;
 
   for (yypp = &yyoptionList->yynext; *yypp != YY_NULLPTR; )
     {
@@ -2210,7 +2387,8 @@ yyresolveValue (yyGLRState* yys, yyGLRStack* yystackp)
           switch (yypreference (yybest, yyp))
             {
             case 0:
-              return yyreportAmbiguity (yybest, yyp);
+              yyresolveLocations (yys, 1, yystackp, scanner);
+              return yyreportAmbiguity (yybest, yyp, yylocp, scanner);
               break;
             case 1:
               yymerge = yytrue;
@@ -2235,19 +2413,20 @@ yyresolveValue (yyGLRState* yys, yyGLRStack* yystackp)
     {
       yySemanticOption* yyp;
       int yyprec = yydprec[yybest->yyrule];
-      yyflag = yyresolveAction (yybest, yystackp, &yyval);
+      yyflag = yyresolveAction (yybest, yystackp, &yyval, yylocp, scanner);
       if (yyflag == yyok)
         for (yyp = yybest->yynext; yyp != YY_NULLPTR; yyp = yyp->yynext)
           {
             if (yyprec == yydprec[yyp->yyrule])
               {
                 YYSTYPE yyval_other;
-                yyflag = yyresolveAction (yyp, yystackp, &yyval_other);
+                YYLTYPE yydummy;
+                yyflag = yyresolveAction (yyp, yystackp, &yyval_other, &yydummy, scanner);
                 if (yyflag != yyok)
                   {
                     yydestruct ("Cleanup: discarding incompletely merged value for",
                                 yy_accessing_symbol (yys->yylrState),
-                                &yyval);
+                                &yyval, yylocp, scanner);
                     break;
                   }
                 yyuserMerge (yymerger[yyp->yyrule], &yyval, &yyval_other);
@@ -2255,7 +2434,7 @@ yyresolveValue (yyGLRState* yys, yyGLRStack* yystackp)
           }
     }
   else
-    yyflag = yyresolveAction (yybest, yystackp, &yyval);
+    yyflag = yyresolveAction (yybest, yystackp, &yyval, yylocp, scanner);
 
   if (yyflag == yyok)
     {
@@ -2268,7 +2447,7 @@ yyresolveValue (yyGLRState* yys, yyGLRStack* yystackp)
 }
 
 static YYRESULTTAG
-yyresolveStack (yyGLRStack* yystackp)
+yyresolveStack (yyGLRStack* yystackp, yyscan_t scanner)
 {
   if (yystackp->yysplitPoint != YY_NULLPTR)
     {
@@ -2280,7 +2459,7 @@ yyresolveStack (yyGLRStack* yystackp)
            yys = yys->yypred, yyn += 1)
         continue;
       YYCHK (yyresolveStates (yystackp->yytops.yystates[0], yyn, yystackp
-                             ));
+                             , scanner));
     }
   return yyok;
 }
@@ -2323,7 +2502,7 @@ yycompressStack (yyGLRStack* yystackp)
 
 static YYRESULTTAG
 yyprocessOneStack (yyGLRStack* yystackp, YYPTRDIFF_T yyk,
-                   YYPTRDIFF_T yyposn)
+                   YYPTRDIFF_T yyposn, YYLTYPE *yylocp, yyscan_t scanner)
 {
   while (yystackp->yytops.yystates[yyk] != YY_NULLPTR)
     {
@@ -2343,7 +2522,7 @@ yyprocessOneStack (yyGLRStack* yystackp, YYPTRDIFF_T yyk,
               yymarkStackDeleted (yystackp, yyk);
               return yyok;
             }
-          yyflag = yyglrReduce (yystackp, yyk, yyrule, yyimmediate[yyrule]);
+          yyflag = yyglrReduce (yystackp, yyk, yyrule, yyimmediate[yyrule], scanner);
           if (yyflag == yyerr)
             {
               YY_DPRINTF ((stderr,
@@ -2358,7 +2537,7 @@ yyprocessOneStack (yyGLRStack* yystackp, YYPTRDIFF_T yyk,
         }
       else
         {
-          yysymbol_kind_t yytoken = yygetToken (&yychar);
+          yysymbol_kind_t yytoken = yygetToken (&yychar, yystackp, scanner);
           const short* yyconflicts;
           const int yyaction = yygetLRActions (yystate, yytoken, &yyconflicts);
           yystackp->yytops.yylookaheadNeeds[yyk] = yytrue;
@@ -2371,10 +2550,10 @@ yyprocessOneStack (yyGLRStack* yystackp, YYPTRDIFF_T yyk,
                            YY_CAST (long, yynewStack), YY_CAST (long, yyk)));
               yyflag = yyglrReduce (yystackp, yynewStack,
                                     *yyconflicts,
-                                    yyimmediate[*yyconflicts]);
+                                    yyimmediate[*yyconflicts], scanner);
               if (yyflag == yyok)
                 YYCHK (yyprocessOneStack (yystackp, yynewStack,
-                                          yyposn));
+                                          yyposn, yylocp, scanner));
               else if (yyflag == yyerr)
                 {
                   YY_DPRINTF ((stderr, "Stack %ld dies.\n", YY_CAST (long, yynewStack)));
@@ -2395,7 +2574,7 @@ yyprocessOneStack (yyGLRStack* yystackp, YYPTRDIFF_T yyk,
           else
             {
               YYRESULTTAG yyflag = yyglrReduce (yystackp, yyk, -yyaction,
-                                                yyimmediate[-yyaction]);
+                                                yyimmediate[-yyaction], scanner);
               if (yyflag == yyerr)
                 {
                   YY_DPRINTF ((stderr,
@@ -2500,7 +2679,7 @@ yy_syntax_error_arguments (const yyGLRStack* yystackp,
 
 
 static void
-yyreportSyntaxError (yyGLRStack* yystackp)
+yyreportSyntaxError (yyGLRStack* yystackp, yyscan_t scanner)
 {
   if (yystackp->yyerrState != 0)
     return;
@@ -2574,12 +2753,12 @@ yyreportSyntaxError (yyGLRStack* yystackp)
               ++yyformat;
             }
         }
-      yyerror (yymsg);
+      yyerror (&yylloc, scanner, yymsg);
       YYFREE (yymsg);
     }
   else
     {
-      yyerror (YY_("syntax error"));
+      yyerror (&yylloc, scanner, YY_("syntax error"));
       yyMemoryExhausted (yystackp);
     }
   }
@@ -2590,7 +2769,7 @@ yyreportSyntaxError (yyGLRStack* yystackp)
    yylval, and yylloc are the syntactic category, semantic value, and location
    of the lookahead.  */
 static void
-yyrecoverSyntaxError (yyGLRStack* yystackp)
+yyrecoverSyntaxError (yyGLRStack* yystackp, yyscan_t scanner)
 {
   if (yystackp->yyerrState == 3)
     /* We just shifted the error token and (perhaps) took some
@@ -2600,15 +2779,22 @@ yyrecoverSyntaxError (yyGLRStack* yystackp)
         yysymbol_kind_t yytoken;
         int yyj;
         if (yychar == YYEOF)
-          yyFail (yystackp, YY_NULLPTR);
+          yyFail (yystackp, &yylloc, scanner, YY_NULLPTR);
         if (yychar != YYEMPTY)
           {
+            /* We throw away the lookahead, but the error range
+               of the shifted error token must take it into account.  */
+            yyGLRState *yys = yystackp->yytops.yystates[0];
+            yyGLRStackItem yyerror_range[3];
+            yyerror_range[1].yystate.yyloc = yys->yyloc;
+            yyerror_range[2].yystate.yyloc = yylloc;
+            YYLLOC_DEFAULT ((yys->yyloc), yyerror_range, 2);
             yytoken = YYTRANSLATE (yychar);
             yydestruct ("Error: discarding",
-                        yytoken, &yylval);
+                        yytoken, &yylval, &yylloc, scanner);
             yychar = YYEMPTY;
           }
-        yytoken = yygetToken (&yychar);
+        yytoken = yygetToken (&yychar, yystackp, scanner);
         yyj = yypact[yystackp->yytops.yystates[0]->yylrState];
         if (yypact_value_is_default (yyj))
           return;
@@ -2629,7 +2815,7 @@ yyrecoverSyntaxError (yyGLRStack* yystackp)
       if (yystackp->yytops.yystates[yyk] != YY_NULLPTR)
         break;
     if (yyk >= yystackp->yytops.yysize)
-      yyFail (yystackp, YY_NULLPTR);
+      yyFail (yystackp, &yylloc, scanner, YY_NULLPTR);
     for (yyk += 1; yyk < yystackp->yytops.yysize; yyk += 1)
       yymarkStackDeleted (yystackp, yyk);
     yyremoveDeletes (yystackp);
@@ -2650,22 +2836,27 @@ yyrecoverSyntaxError (yyGLRStack* yystackp)
             {
               /* Shift the error token.  */
               int yyaction = yytable[yyj];
+              /* First adjust its location.*/
+              YYLTYPE yyerrloc;
+              yystackp->yyerror_range[2].yystate.yyloc = yylloc;
+              YYLLOC_DEFAULT (yyerrloc, (yystackp->yyerror_range), 2);
               YY_SYMBOL_PRINT ("Shifting", yy_accessing_symbol (yyaction),
                                &yylval, &yyerrloc);
               yyglrShift (yystackp, 0, yyaction,
-                          yys->yyposn, &yylval);
+                          yys->yyposn, &yylval, &yyerrloc);
               yys = yystackp->yytops.yystates[0];
               break;
             }
         }
+      yystackp->yyerror_range[1].yystate.yyloc = yys->yyloc;
       if (yys->yypred != YY_NULLPTR)
-        yydestroyGLRState ("Error: popping", yys);
+        yydestroyGLRState ("Error: popping", yys, scanner);
       yystackp->yytops.yystates[0] = yys->yypred;
       yystackp->yynextFree -= 1;
       yystackp->yyspaceLeft += 1;
     }
   if (yystackp->yytops.yystates[0] == YY_NULLPTR)
-    yyFail (yystackp, YY_NULLPTR);
+    yyFail (yystackp, &yylloc, scanner, YY_NULLPTR);
 }
 
 #define YYCHK1(YYE)                             \
@@ -2685,7 +2876,7 @@ yyrecoverSyntaxError (yyGLRStack* yystackp)
 `----------*/
 
 int
-yyparse (void)
+yyparse (yyscan_t scanner)
 {
   int yyresult;
   yyGLRStack yystack;
@@ -2696,6 +2887,7 @@ yyparse (void)
 
   yychar = YYEMPTY;
   yylval = yyval_default;
+  yylloc = yyloc_default;
 
   if (! yyinitGLRStack (yystackp, YYINITDEPTH))
     goto yyexhaustedlab;
@@ -2706,7 +2898,7 @@ yyparse (void)
     case 2: goto yyexhaustedlab;
     default: goto yybuglab;
     }
-  yyglrShift (&yystack, 0, 0, 0, &yylval);
+  yyglrShift (&yystack, 0, 0, 0, &yylval, &yylloc);
   yyposn = 0;
 
   while (yytrue)
@@ -2726,14 +2918,15 @@ yyparse (void)
               yyRuleNum yyrule = yydefaultAction (yystate);
               if (yyrule == 0)
                 {
-                  yyreportSyntaxError (&yystack);
+                  yystack.yyerror_range[1].yystate.yyloc = yylloc;
+                  yyreportSyntaxError (&yystack, scanner);
                   goto yyuser_error;
                 }
-              YYCHK1 (yyglrReduce (&yystack, 0, yyrule, yytrue));
+              YYCHK1 (yyglrReduce (&yystack, 0, yyrule, yytrue, scanner));
             }
           else
             {
-              yysymbol_kind_t yytoken = yygetToken (&yychar);
+              yysymbol_kind_t yytoken = yygetToken (&yychar, yystackp, scanner);
               const short* yyconflicts;
               int yyaction = yygetLRActions (yystate, yytoken, &yyconflicts);
               if (*yyconflicts)
@@ -2744,20 +2937,21 @@ yyparse (void)
                   YY_SYMBOL_PRINT ("Shifting", yytoken, &yylval, &yylloc);
                   yychar = YYEMPTY;
                   yyposn += 1;
-                  yyglrShift (&yystack, 0, yyaction, yyposn, &yylval);
+                  yyglrShift (&yystack, 0, yyaction, yyposn, &yylval, &yylloc);
                   if (0 < yystack.yyerrState)
                     yystack.yyerrState -= 1;
                 }
               else if (yyisErrorAction (yyaction))
                 {
+                  yystack.yyerror_range[1].yystate.yyloc = yylloc;
                   /* Issue an error message unless the scanner already
                      did. */
                   if (yychar != YYerror)
-                    yyreportSyntaxError (&yystack);
+                    yyreportSyntaxError (&yystack, scanner);
                   goto yyuser_error;
                 }
               else
-                YYCHK1 (yyglrReduce (&yystack, 0, -yyaction, yytrue));
+                YYCHK1 (yyglrReduce (&yystack, 0, -yyaction, yytrue, scanner));
             }
         }
 
@@ -2790,16 +2984,17 @@ yyparse (void)
              on yylval in the event of memory exhaustion.  */
 
           for (yys = 0; yys < yystack.yytops.yysize; yys += 1)
-            YYCHK1 (yyprocessOneStack (&yystack, yys, yyposn));
+            YYCHK1 (yyprocessOneStack (&yystack, yys, yyposn, &yylloc, scanner));
           yyremoveDeletes (&yystack);
           if (yystack.yytops.yysize == 0)
             {
               yyundeleteLastStack (&yystack);
               if (yystack.yytops.yysize == 0)
-                yyFail (&yystack, YY_("syntax error"));
-              YYCHK1 (yyresolveStack (&yystack));
+                yyFail (&yystack, &yylloc, scanner, YY_("syntax error"));
+              YYCHK1 (yyresolveStack (&yystack, scanner));
               YY_DPRINTF ((stderr, "Returning to deterministic operation.\n"));
-              yyreportSyntaxError (&yystack);
+              yystack.yyerror_range[1].yystate.yyloc = yylloc;
+              yyreportSyntaxError (&yystack, scanner);
               goto yyuser_error;
             }
 
@@ -2821,7 +3016,7 @@ yyparse (void)
               YY_DPRINTF ((stderr, "On stack %ld, ", YY_CAST (long, yys)));
               YY_SYMBOL_PRINT ("shifting", yytoken_to_shift, &yylval, &yylloc);
               yyglrShift (&yystack, yys, yyaction, yyposn,
-                          &yylval);
+                          &yylval, &yylloc);
               YY_DPRINTF ((stderr, "Stack %ld now in state %d\n",
                            YY_CAST (long, yys),
                            yystack.yytops.yystates[yys]->yylrState));
@@ -2829,7 +3024,7 @@ yyparse (void)
 
           if (yystack.yytops.yysize == 1)
             {
-              YYCHK1 (yyresolveStack (&yystack));
+              YYCHK1 (yyresolveStack (&yystack, scanner));
               YY_DPRINTF ((stderr, "Returning to deterministic operation.\n"));
               yycompressStack (&yystack);
               break;
@@ -2837,7 +3032,7 @@ yyparse (void)
         }
       continue;
     yyuser_error:
-      yyrecoverSyntaxError (&yystack);
+      yyrecoverSyntaxError (&yystack, scanner);
       yyposn = yystack.yytops.yystates[0]->yyposn;
     }
 
@@ -2854,14 +3049,14 @@ yyparse (void)
   goto yyreturnlab;
 
  yyexhaustedlab:
-  yyerror (YY_("memory exhausted"));
+  yyerror (&yylloc, scanner, YY_("memory exhausted"));
   yyresult = 2;
   goto yyreturnlab;
 
  yyreturnlab:
   if (yychar != YYEMPTY)
     yydestruct ("Cleanup: discarding lookahead",
-                YYTRANSLATE (yychar), &yylval);
+                YYTRANSLATE (yychar), &yylval, &yylloc, scanner);
 
   /* If the stack is well-formed, pop the stack until it is empty,
      destroying its entries as we go.  But free the stack regardless
@@ -2879,8 +3074,9 @@ yyparse (void)
                 while (yystates[yyk])
                   {
                     yyGLRState *yys = yystates[yyk];
+                    yystack.yyerror_range[1].yystate.yyloc = yys->yyloc;
                     if (yys->yypred != YY_NULLPTR)
-                      yydestroyGLRState ("Cleanup: popping", yys);
+                      yydestroyGLRState ("Cleanup: popping", yys, scanner);
                     yystates[yyk] = yys->yypred;
                     yystack.yynextFree -= 1;
                     yystack.yyspaceLeft += 1;
@@ -2980,83 +3176,10 @@ yypdumpstack (yyGLRStack* yystackp)
 #undef yylval
 #undef yychar
 #undef yynerrs
+#undef yylloc
 
 
 
 
-#line 217 "lcs.y"
+#line 216 "lcs.y"
 
-
-#include <stdio.h>
-
-extern char yytext[];
-extern int yylineno;
-
-static char* filename;
-
-void
-yyerror (char const *s)
-{
-  printf("%s:Line: %i %s\n", filename, yylineno, s);
-}
-
-int parse(Buffer* codeBuffer, Buffer* headerBuffer) {
-  code = codeBuffer;
-  header = headerBuffer;
-  return yyparse();
-}
-
-int themain(int argc, char* argv[]) {
-
-  int k, index;
-  while ((k = getopt (argc, argv, "d")) != -1) {
-    switch(k) {
-      case 'd':
-        yydebug = 1;
-        break;
-      default:
-        abort();
-    }
-  }
-
-  for (index = optind; index < argc; index++) {
-    Buffer c    = BufferInit(_code, MAXFILESIZE);
-    Buffer h    = BufferInit(_header, MAXFILESIZE);
-    Buffer file = BufferInit(_infile, MAXFILESIZE);
-
-    filename = argv[index];
-
-    SpanResult sr = OsSlurp(filename, MAXFILESIZE, &file);
-
-    if(sr.error) {
-      fprintf(stderr, "%s\n", sr.error);
-      return -1;
-    }
-    // For flex, you need to add two 0 bytes at the end of the buffer to avoid copying the data.
-    if(sr.data.len > MAXFILESIZE - 2) {
-      fprintf(stderr, "%s\n", "File too big.");
-      return -1;
-    }
-    Span biggerSpan = SPAN(sr.data.ptr, sr.data.len + 2);
-    biggerSpan.ptr[biggerSpan.len - 2] = 0;
-    biggerSpan.ptr[biggerSpan.len - 1] = 0;
-
-    printf("%s\n", "----------");
-    printf("%s:\n", filename);
-    printf("%s\n\n", "----------");
-
-    set_buffer(biggerSpan);
-    int ret = parse(&c, &h);
-    delete_buffer();
-    
-    OsPrintBuffer(&h);
-    OsPrintBuffer(&c);
-    puts("");
-
-    if(ret) {
-      fprintf(stderr, "%s\n", "Parse error.");
-    }
-  }
-
-  return 0;
-}

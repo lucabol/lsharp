@@ -8,6 +8,15 @@
 #include "ulib/OsStdc.h"
 #include "ulib/OptGet.h"
 
+typedef struct {
+  Buffer* code;
+  Buffer* header;
+  char* filename;
+} Env;
+
+
+#include "lcs.tab.h"
+
 // How big of a source file we can read
 #define MAXFILESIZE 1024 * 1024
 

@@ -6,25 +6,46 @@ FS			(f|F|l|L)
 IS			(u|U|l|L)*
 
 %option noyywrap
-%option yylineno
 %option fast
 
-%{
-  #include "lcs.tab.h"
+%option reentrant bison-bridge bison-locations
+%option extra-type="Env*"
+%option header-file="lcs.lex.h"
 
-  void yyerror(const char *s);
-  void comment(void);
+%x IN_COMMENT
+
+%{
+  #include "config.h"
+
   int check_type(void);
 
 
-  YY_BUFFER_STATE lexState;
+#define YY_USER_ACTION \
+    yylloc->first_line = yylloc->last_line; \
+    yylloc->first_column = yylloc->last_column; \
+    for(int i = 0; yytext[i] != '\0'; i++) { \
+        if(yytext[i] == '\n') { \
+            yylloc->last_line++; \
+            yylloc->last_column = 0; \
+        } \
+        else { \
+            yylloc->last_column++; \
+        } \
+    }
 
-  void count();
 %}
 
 %%
 
-"/*"			{ comment(); }
+<INITIAL>{
+  "/*"              BEGIN(IN_COMMENT);
+}
+<IN_COMMENT>{
+  "*/"      BEGIN(INITIAL);
+  [^*]+   // eat comment in chunks
+  "*"       // eat the lone star
+}
+
 "//".*    { /* consume //-comment */ }
 
 "namespace"	{ return(NAMESPACE); }
@@ -87,19 +108,6 @@ L?\"(\\.|[^\\"])*\"	{ return(STRING_LITERAL); }
 .			    { return(yytext[0]); }
 %%
 
-void comment(void)
-{
-	char c, prev = 0;
-  
-	while ((c = (char) input()) != 0)      /* (EOF maps to 0) */
-	{
-		if (c == '/' && prev == '*')
-			return;
-		prev = c;
-	}
-	yyerror("unterminated comment");
-}
-
 int check_type(void)
 {
 /*
@@ -117,12 +125,3 @@ int check_type(void)
 	return(IDENTIFIER);
 }
 
-void set_buffer(Span s) {
-    lexState = yy_scan_buffer((char*)s.ptr, (int)s.len);
-
-    yylineno = 1;
-}
-
-void delete_buffer() {
-    yy_delete_buffer(lexState);
-}
