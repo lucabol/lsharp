@@ -13,7 +13,7 @@ Byte  _code[MAXFILESIZE], _header[MAXFILESIZE], _infile[MAXFILESIZE];
 
 void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg) {
   Env* env = yyget_extra(scanner);
-  fprintf(stderr, "File:%s Line:%i Column:%i %s", env->filename, locp->first_line, locp->first_column, msg);
+  fprintf(stderr, "File:%s Line:%i Column:%i %s\n", env->filename, locp->first_line, locp->first_column, msg);
 }
 
 void visit(int node, Buffer* c, Buffer* h);
@@ -68,7 +68,6 @@ int themain(int argc, char* argv[]) {
 
     if(env.startNode < 0) {
       puts("Error constructing the parse tree?");
-      return -1;
     }
 
     Buffer c    = BufferInit(_code, MAXFILESIZE);

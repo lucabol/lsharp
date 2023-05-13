@@ -5,10 +5,6 @@ E			[Ee][+-]?{D}+
 FS			(f|F|l|L)
 IS			(u|U|l|L)*
 
-ucn        ((\\u([[:xdigit:]]{4}))|(\\U([[:xdigit:]]{8})))
-nondigit    [_[:alpha:]]
-c99_id     ([_[:alpha:]]|{ucn})([_[:alnum:]]|{ucn})*
-
 %option noyywrap
 %option fast
 
@@ -78,9 +74,7 @@ c99_id     ([_[:alpha:]]|{ucn})([_[:alnum:]]|{ucn})*
 {L}({L}|{D})*		  { return(check_type()); }
 
 0[xX]{H}+{IS}?		{ return(CONSTANT); }
-0{D}+{IS}?		    { return(CONSTANT); }
 {D}+{IS}?		      { return(CONSTANT); }
-L?'(\\.|[^\\'])+'	{ return(CONSTANT); }
 
 {D}+{E}{FS}?		        { return(CONSTANT); }
 {D}*"."{D}+({E})?{FS}?	{ return(CONSTANT); }

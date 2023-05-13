@@ -51,6 +51,7 @@
   void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg);
 
   #define NT(vv,...) vv = CreateNt(Generic, __VA_ARGS__); 
+  #define EMPTY(vv) vv = CreateToken("",0);
 }
 
 %%
@@ -64,12 +65,12 @@ translation_unit
   ;
 
 namespace_decl
-  : %empty
+  : %empty {EMPTY($$)}
   | NAMESPACE IDENTIFIER ';' { NT($$,$1,$2,$3) }
   ;
 
 usings_list
-  : %empty
+  : %empty {EMPTY($$)}
   | usings_list using_dir { NT($$,$1,$2) }
   ;
 
@@ -78,7 +79,7 @@ using_dir
   ;
 
 decl_or_func_list
-  : %empty
+  : %empty {EMPTY($$)}
   | decl_or_func_list decl_or_func { NT($$,$1,$2) }
   ;
 
@@ -119,17 +120,18 @@ slicedecl
   ;
 
 sliceassign_list
-  : %empty
+  : %empty {EMPTY($$)}
   | sliceassign_list ',' sliceassign { NT($$,$1,$2,$3) }
   ;
 
 sliceassign
   : IDENTIFIER '=' '{' expr_list '}' { NT($$,$1,$2,$3,$4,$5) }
   | IDENTIFIER '=' "new" valuetype '[' expr ']' { NT($$,$1,$2,$3,$4,$5,$6,$7) }
+  | IDENTIFIER '=' expr { NT($$,$1,$2,$3) }
   ;
 
 assign_list
-  : %empty
+  : %empty {EMPTY($$)}
   | assign_list ',' assign { NT($$,$1,$2,$3) }
 
 assign
@@ -145,7 +147,7 @@ funccall
   ;
 
 param_list
-  : %empty
+  : %empty {EMPTY($$)}
   | paramdecl
   | param_list ',' paramdecl { NT($$,$1,$2,$3) }
   ;
@@ -155,7 +157,7 @@ paramdecl
   ;
 
 expr_list
-  : %empty
+  : %empty {EMPTY($$)}
   | expr
   | expr_list ',' expr { NT($$,$1,$2,$3) }
   ;
@@ -165,7 +167,7 @@ block
   ;
 
 stmts
-  : %empty
+  : %empty {EMPTY($$)}
   | stmts stmt { NT($$,$1,$2) }
   ;
 
@@ -181,6 +183,7 @@ stmt
 
 expr
   : CONSTANT
+  | STRING_LITERAL
   | IDENTIFIER
   | assign
   | funccall

@@ -22,6 +22,7 @@ Bob [] BB(int k) {
     return a;
   }
   int j = 0x33;
+  char[] s = "fafadf";
   return k;
 }
 

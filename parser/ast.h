@@ -64,7 +64,7 @@ CreateToken(char* ptr, int len) {
 int   NodeId[MAXSYMBOLS];
 Kind  NodeKind[MAXSYMBOLS];
 char* NodeName[MAXSYMBOLS];
-int  NodeLen[MAXSYMBOLS];
+int   NodeLen[MAXSYMBOLS];
 int   NodeFirstChild[MAXSYMBOLS];
 
 int   NodeChildren[MAXSYMBOLS * 10];
@@ -72,7 +72,7 @@ int   NodeChildren[MAXSYMBOLS * 10];
 int   NextChild;
 int   NextId;
 
-int CreateNTA(Kind kind, int children[]);
-int CreateToken(char* ptr, int len);
-void die(const char *msg);
+int   CreateNTA(Kind kind, int children[]);
+int   CreateToken(char* ptr, int len);
+void  die(const char *msg);
 #endif
