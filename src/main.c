@@ -18,13 +18,65 @@ void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg) {
 
 void visit(int node, Buffer* c, Buffer* h);
 
+Span basename(char* path) {
+  Span s         = SpanFromString(path);
+  SpanPair nodir = SpanRCut(s,'.');
+  SpanPair noext = SpanRCut(nodir.head, '/');
+  return noext.tail;
+}
+
+Span buildFileName(Byte* buffer, int len, char* path, char* dir, char* ext) {
+  
+    Buffer btmp = BufferInit(buffer, len);
+    SpanResult sr = {0};
+
+    Span bname = basename(path);
+    if(dir[strlen(dir) - 1] == '/') 
+      sr = BufferSCopy(0, &btmp, dir, (char*)SpanTo1KTempString(bname), ext);
+    else
+      sr = BufferSCopy(0, &btmp, dir, "/", (char*)SpanTo1KTempString(bname), ext);
+
+    if(sr.error) {
+      fputs(sr.error, stderr);
+      exit(1);
+    }
+    return sr.data;
+}
+
+void printBuffer(char* tempDirValue, Span targetFile, Buffer* b) {
+  
+    if(tempDirValue) {
+      char* err = OsFlush((char*)SpanTo1KTempString(targetFile), BufferToSpan(b));
+      if(err) {
+        fputs(err, stderr);
+        exit(1);
+      }
+    } else {
+      OsPrintBuffer(b);
+    }
+}
+
+void cpreamble(Buffer* b, Span filename) {
+  BufferSLCopy(0,b, "#include \"", (char*)SpanTo1KTempString(filename), "\"");
+}
+void hpreamble(Buffer* b, Span filename) {
+  BufferSLCopy(0,b, "#include <stdint.h>");
+}
 int themain(int argc, char* argv[]) {
 
   int k, index;
-  while ((k = getopt (argc, argv, "d")) != -1) {
+  char* tempDirValue = "/tmp";
+
+  while ((k = getopt (argc, argv, "bdt:")) != -1) {
     switch(k) {
       case 'd':
         yydebug = 1;
+        break;
+      case 't':
+        tempDirValue = optarg;
+        break;
+      case 'b':
+        tempDirValue = NULL;
         break;
       default:
         abort();
@@ -73,10 +125,19 @@ int themain(int argc, char* argv[]) {
     Buffer c    = BufferInit(_code, MAXFILESIZE);
     Buffer h    = BufferInit(_header, MAXFILESIZE);
 
+    Byte hbuf[512];
+    Byte cbuf[512];
+    Span hname = buildFileName(hbuf, sizeof(hbuf), filename, tempDirValue, ".h");
+    Span cname = buildFileName(cbuf, sizeof(cbuf),filename, tempDirValue, ".c");
+
+    hpreamble(&h, hname);
+    cpreamble(&c, hname);
+
     visit(env.startNode, &c, &h);
 
-    OsPrintBuffer(&h);
-    OsPrintBuffer(&c);
+    printBuffer(tempDirValue, hname, &h);
+    printBuffer(tempDirValue, cname, &c);
+
     
     return ret;
   }

@@ -12,9 +12,6 @@ do
 	case $i in
 	-*)
 		flags="$flags $i"
-    if [[ "$i" == "-g" ]]; then
-      debug=true
-    fi
 		;;
 	*)
 		if ! test -z $file
@@ -32,20 +29,8 @@ then
 fi
 
 PRE="${file%.*}"
-DBGNAME=`basename $PRE`
+BNAMES=`basename -a $PRE`
 
-debugbuild() {
 
-  ./lcs $file > "$DBGDIR/$DBGNAME.c"
-  gcc $flags $DBGDIR/$DBGNAME.c
-}
-releasebuild() {
-  
-  ./lcs $file | gcc $flags -xc -
-}
-
-if [ "$debug" ]; then
-  debugbuild
-else
-  releasebuild
-fi
+./lcs $file
+gcc $flags /tmp/$BNAMES.c
