@@ -30,6 +30,7 @@
 %token CASE "case" DEFAULT "default" IF "if" ELSE "else" SWITCH "switch" WHILE "while" DO "do" FOR "for" GOTO "goto" CONTINUE "continue" BREAK "break" RETURN "return"
 
 %token SLICESYM "[]" NEW "new"
+%token PTYPE "primitive type"
 
 %left ','
 %right '=' "+=" "-=" "*=" ">>=" "<<=" "&=" "^=" "|="
@@ -51,7 +52,8 @@
   void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg);
 
   #define NT(vv,...) vv = CreateNt(Generic, __VA_ARGS__); 
-  #define EMPTY(vv) vv = CreateToken("",0);
+  #define NTT(kind,vv,...) vv = CreateNt(kind, __VA_ARGS__); 
+  #define EMPTY(vv) { YYLTYPE* loc = yyget_lloc(scanner); vv = CreateToken(Token,"",0,loc->first_line,loc->first_column); }
 }
 
 %%
@@ -94,7 +96,8 @@ type
   ;
 
 valuetype
-  : IDENTIFIER 
+  : PTYPE { $$ = CreateToken(PrimitiveType, NodeName[$1] , NodeLen[$1], yylloc.first_line, yylloc.first_column); }
+  | IDENTIFIER 
   | TYPE_NAME
   ;
 
@@ -172,13 +175,13 @@ stmts
   ;
 
 stmt
-  : ';'
-  | block
-  | decl
-  | expr ';' { NT($$,$1,$2) }
-  | WHILE '(' expr ')' block { NT($$,$1,$2,$3,$4,$5) }
-  | RETURN expr ';' { NT($$,$1,$2,$3) }
-  | IF '(' expr ')' block ELSE block { NT($$,$1,$2,$3,$4,$5,$6,$7) }
+  : ';' { NTT(WithLine,$$,$1); }
+  | block { NTT(WithLine,$$,$1); }
+  | decl { NTT(WithLine,$$,$1); }
+  | expr ';' { NTT(WithLine,$$,$1, $2); }
+  | WHILE '(' expr ')' block { NTT(WithLine,$$,$1,$2,$3,$4,$5) }
+  | RETURN expr ';' { NTT(WithLine,$$,$1,$2,$3) }
+  | IF '(' expr ')' block ELSE block { NTT(WithLine,$$,$1,$2,$3,$4,$5,$6,$7) }
   ;
 
 expr

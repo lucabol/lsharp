@@ -22,7 +22,7 @@ IS			(u|U|l|L)*
 
 
 #define YY_USER_ACTION \
-    *yylval = CreateToken(yytext, yyleng); \
+    *yylval = CreateToken(Token, yytext, yyleng, yylloc->first_line, yylloc->first_column); \
     yylloc->first_line = yylloc->last_line; \
     yylloc->first_column = yylloc->last_column; \
     for(int i = 0; yytext[i] != '\0'; i++) { \
@@ -49,6 +49,8 @@ IS			(u|U|l|L)*
 }
 
 "//".*    { /* consume //-comment */ }
+
+"bool"|"byte"|"sbyte"|"char"|"double"|"float"|"int"|"unint"|"nint"|"long"|"ulong"|"short"|"ushort" { return PTYPE; }
 
 "namespace"	{ return(NAMESPACE); }
 "using"			{ return(USING); }
@@ -103,7 +105,7 @@ L?\"(\\.|[^\\"])*\"	{ return(STRING_LITERAL); }
 "=="			{ return(EQ_OP); }
 "!="			{ return(NE_OP); }
 
-[ \t\v\n\f] {} // Ignore spaces
+[[:space:]]+            ; /* Do nothing */
 
 .			    { return(yytext[0]); }
 %%

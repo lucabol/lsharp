@@ -33,4 +33,4 @@ BNAMES=`basename -a $PRE`
 
 
 ./lcs $file
-gcc $flags /tmp/$BNAMES.c
+gcc -Wall -Wextra -fno-diagnostics-show-caret -fno-show-column $flags /tmp/$BNAMES.c

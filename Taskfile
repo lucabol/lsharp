@@ -23,7 +23,7 @@ function buildcs {    # Build CSharp
   done
 }
 
-function buildldriver {   # Build LSharp precompiler driver
+function builddriver {   # Build LSharp precompiler driver
   pushd ./src > /dev/null
   ./Taskfile build
   cp lcs ../
@@ -49,7 +49,7 @@ function buildr {    # Build C in release mode
 function buildall {  # Build all version
   clean
 
-  buildldriver
+  builddriver
   buildcs
   buildd
   buildr

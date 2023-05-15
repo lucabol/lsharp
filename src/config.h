@@ -20,6 +20,8 @@ typedef struct {
 typedef enum {
   Generic = 0,
   Token,
+  PrimitiveType,
+  WithLine,
 } Kind;
 
 #include "lcs.tab.h"

@@ -6,6 +6,7 @@
 #include "config.h"
 #include "lcs.lex.h"
 #include "ast.h"
+#include "visit.h"
 
 // Buffers for the header and code files for the generated code. Also for reading and writing the files.
 // TODO: need to malloc different ones instead of using same one
@@ -16,21 +17,12 @@ void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg) {
   fprintf(stderr, "File:%s Line:%i Column:%i %s\n", env->filename, locp->first_line, locp->first_column, msg);
 }
 
-void visit(int node, Buffer* c, Buffer* h);
-
-Span basename(char* path) {
-  Span s         = SpanFromString(path);
-  SpanPair nodir = SpanRCut(s,'.');
-  SpanPair noext = SpanRCut(nodir.head, '/');
-  return noext.tail;
-}
-
 Span buildFileName(Byte* buffer, int len, char* path, char* dir, char* ext) {
   
     Buffer btmp = BufferInit(buffer, len);
     SpanResult sr = {0};
 
-    Span bname = basename(path);
+    Span bname = SpanExtractFileName('/', SpanFromString(path));
     if(dir[strlen(dir) - 1] == '/') 
       sr = BufferSCopy(0, &btmp, dir, (char*)SpanTo1KTempString(bname), ext);
     else
@@ -56,11 +48,11 @@ void printBuffer(char* tempDirValue, Span targetFile, Buffer* b) {
     }
 }
 
-void cpreamble(Buffer* b, Span filename) {
-  BufferSLCopy(0,b, "#include \"", (char*)SpanTo1KTempString(filename), "\"");
+void cpreamble(Buffer* b, Span inclName) {
+  BufferSLCopy(0,b, "#include \"", (char*)SpanTo1KTempString(inclName), "\"");
 }
-void hpreamble(Buffer* b, Span filename) {
-  BufferSLCopy(0,b, "#include <stdint.h>");
+void hpreamble(Buffer* b) {
+  BufferSLCopy(0,b, "#include <stdint.h>\n#include <stdbool.h>");
 }
 int themain(int argc, char* argv[]) {
 
@@ -130,10 +122,12 @@ int themain(int argc, char* argv[]) {
     Span hname = buildFileName(hbuf, sizeof(hbuf), filename, tempDirValue, ".h");
     Span cname = buildFileName(cbuf, sizeof(cbuf),filename, tempDirValue, ".c");
 
-    hpreamble(&h, hname);
+    Context ctx = { .c = &c, .h = &h, .filename = filename };
+
+    hpreamble(&h);
     cpreamble(&c, hname);
 
-    visit(env.startNode, &c, &h);
+    visit(env.startNode, &ctx);
 
     printBuffer(tempDirValue, hname, &h);
     printBuffer(tempDirValue, cname, &c);

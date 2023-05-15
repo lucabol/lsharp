@@ -8,6 +8,8 @@ extern Kind   NodeKind[];
 extern char*  NodeName[];
 extern int    NodeLen[];
 extern int    NodeFirstChild[];
+extern int    NodeLine[];
+extern int    NodeColumn[];
 
 extern int   NextChild;
 extern int   NextId;
@@ -30,6 +32,8 @@ CreateNTA(Kind kind, int children[]) {
   NodeName[id]       = 0;
   NodeLen[id]        = -1;
   NodeFirstChild[id] = NextChild;
+  NodeLine[id]       = NodeLine[children[0]];
+  NodeColumn[id]     = NodeColumn[children[0]];
 
   for(int i = 0; children[i] >= 0; i++) {
     if(NextChild >= MAXSYMBOLS * 10 - 1)
@@ -45,15 +49,17 @@ CreateNTA(Kind kind, int children[]) {
 #define CreateNt(kind, ...) CreateNTA(kind, (int[]) {__VA_ARGS__, -1})
 
 inline int
-CreateToken(char* ptr, int len) {
+CreateToken(Kind kind, char* ptr, int len, int line, int column) {
   if(NextId >= MAXSYMBOLS - 1)
     die("Error creating Token node. The program is too big. AST not big enough.");
 
   int id = NextId++; 
-  NodeKind[id]       = Token;
+  NodeKind[id]       = kind;
   NodeName[id]       = ptr;
   NodeLen[id]        = len;
   NodeFirstChild[id] = -1;
+  NodeLine[id]       = line;
+  NodeColumn[id]     = column;
 
   return id;
 }
@@ -66,6 +72,8 @@ Kind  NodeKind[MAXSYMBOLS];
 char* NodeName[MAXSYMBOLS];
 int   NodeLen[MAXSYMBOLS];
 int   NodeFirstChild[MAXSYMBOLS];
+int   NodeLine[MAXSYMBOLS];
+int   NodeColumn[MAXSYMBOLS];
 
 int   NodeChildren[MAXSYMBOLS * 10];
 
@@ -73,6 +81,6 @@ int   NextChild;
 int   NextId;
 
 int   CreateNTA(Kind kind, int children[]);
-int   CreateToken(char* ptr, int len);
+int   CreateToken(Kind kind, char* ptr, int len, int line, int column);
 void  die(const char *msg);
 #endif

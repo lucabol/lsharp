@@ -97,12 +97,13 @@ extern int yydebug;
     RETURN = 297,                  /* "return"  */
     SLICESYM = 298,                /* "[]"  */
     NEW = 299,                     /* "new"  */
-    CAST = 305,                    /* CAST  */
-    NEG = 308,                     /* NEG  */
-    PREINCR = 309,                 /* PREINCR  */
-    PREDECR = 310,                 /* PREDECR  */
-    POSTINCR = 316,                /* POSTINCR  */
-    POSTDECR = 317                 /* POSTDECR  */
+    PTYPE = 300,                   /* "primitive type"  */
+    CAST = 306,                    /* CAST  */
+    NEG = 309,                     /* NEG  */
+    PREINCR = 310,                 /* PREINCR  */
+    PREDECR = 311,                 /* PREDECR  */
+    POSTINCR = 317,                /* POSTINCR  */
+    POSTDECR = 318                 /* POSTDECR  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
