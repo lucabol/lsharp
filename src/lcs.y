@@ -19,7 +19,7 @@
 
 %define lr.type ielr
 %glr-parser
-%expect 2
+%expect 21
 
 %token NAMESPACE "namespace" USING "using" IDENTIFIER "identifier" CONSTANT "constant" STRING_LITERAL "string literal" SIZEOF "sizeof"
 %token INC_OP "++" DEC_OP "--" LEFT_OP "<<" RIGHT_OP ">>" LE_OP "<=" GE_OP ">=" EQ_OP "==" NE_OP "!="
@@ -51,9 +51,10 @@
 %code {
   void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg);
 
+  #define GETLOC YYLTYPE* loc = yyget_lloc(scanner)
   #define NT(vv,...) vv = CreateNt(Generic, __VA_ARGS__); 
   #define NTT(kind,vv,...) vv = CreateNt(kind, __VA_ARGS__); 
-  #define EMPTY(vv) { YYLTYPE* loc = yyget_lloc(scanner); vv = CreateToken(Token,"",0,loc->first_line,loc->first_column); }
+  #define EMPTY(vv) { GETLOC; vv = CreateToken(Token,"",0,loc->first_line,loc->first_column); }
 }
 
 %%
@@ -99,6 +100,8 @@ valuetype
   : PTYPE { $$ = CreateToken(PrimitiveType, NodeName[$1] , NodeLen[$1], yylloc.first_line, yylloc.first_column); }
   | IDENTIFIER 
   | TYPE_NAME
+  | IDENTIFIER '*' { GETLOC; yyerror(loc, scanner, POINTERS);}
+  | PTYPE '*' { GETLOC; yyerror(loc, scanner, POINTERS);}
   ;
 
 slicetype
@@ -211,6 +214,7 @@ expr
   | expr "||" expr { NT($$,$1,$2,$3) }
   | '-' expr %prec NEG { NT($$,$1,$2) }
   | '+' expr %prec NEG { NT($$,$1,$2) }
+  | '&' expr { GETLOC; yyerror(loc, scanner, REFERENCES);}
   ;
 
 %%

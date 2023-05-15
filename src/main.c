@@ -14,7 +14,7 @@ Byte  _code[MAXFILESIZE], _header[MAXFILESIZE], _infile[MAXFILESIZE];
 
 void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg) {
   Env* env = yyget_extra(scanner);
-  fprintf(stderr, "File:%s Line:%i Column:%i %s\n", env->filename, locp->first_line, locp->first_column, msg);
+  fprintf(stderr, " %s %i:%i: error: %s\n", env->filename, locp->first_column, locp->first_line, msg);
 }
 
 Span buildFileName(Byte* buffer, int len, char* path, char* dir, char* ext) {
@@ -110,8 +110,9 @@ int themain(int argc, char* argv[]) {
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
-    if(env.startNode < 0) {
-      puts("Error constructing the parse tree?");
+    // Parsing failed
+    if(ret != 0) {
+      return ret;
     }
 
     Buffer c    = BufferInit(_code, MAXFILESIZE);

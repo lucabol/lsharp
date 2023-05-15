@@ -7,5 +7,5 @@ int main() {
   short f =12;
   byte bb = 10;
 
-  return (d1 + d2) / d2 * 3;
+  return (d1 * d2 + d2) / d2 * 3;
 }

@@ -1,3 +1,11 @@
+/*
+ * Thechnically, we are:
+ * 1. Simplifiying C by removing pointers, references, structs, unions, ...
+ * 2. Make integer types of fixed size (i.e., int -> int32_t, long -> int64_t,...)
+ * 3. Introduce a simple namespace/module system
+ * 4. Interoperate seamenslessly with C (i.e., using stdio.h ... stdio.printf(...))
+ * 5. Make array manipulation safe (array store len, foreach, ...)
+*/
 #include <ctype.h>
 #include <stdlib.h>
 
@@ -62,10 +70,10 @@ void visit(int node, Context* ctx) {
     case Generic:
       VisitChildren(node, ctx);
       break;
-    case PrimitiveType:
+    case PrimitiveType: // Standarize size of ints
       PrintPrimitiveType(node, ctx->c, ctx->h);
       break;
-    case WithLine:
+    case WithLine: // Insert file and line numbers
       line = NodeLine[node];
       BufferSLCopy(' ', ctx->c, "\n", "#line ", itoa(line), "\"", ctx->filename, "\"");
       VisitChildren(node, ctx);
