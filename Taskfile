@@ -1,7 +1,6 @@
 #!/bin/bash
 
-
-TARGETS=$(basename -s .cs -a $(ls ./test))
+TARGETS=$(basename -s .cs -a $(ls ./test) | paste -sd " " -)
 TESTDIR="test"
 
 CSBIN="csbin"
@@ -59,12 +58,9 @@ function test {    # Runs something
   buildall
 
   for T in $TARGETS; do
-    $(dotnet "$CSBIN/$T.dll")
-    R1=$?
-    $DBIN/$T > /dev/null
-    R2=$?
-    $RBIN/$T > /dev/null
-    R3=$?
+    R1=$(dotnet "$CSBIN/$T.dll")
+    R2=$($DBIN/$T > /dev/null)
+    R3=$($RBIN/$T > /dev/null)
 
     if [ "$R1" = "$R2" ] && [ "$R2" = "$R3" ];
     then

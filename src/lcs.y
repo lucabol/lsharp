@@ -7,6 +7,7 @@
   #include "lcs.lex.h"
   #include "ast.h"
   #include "symtable.h"
+
 }
 
 %define locations
@@ -56,6 +57,8 @@
   #define NT(vv,...) vv = CreateNt(Generic, __VA_ARGS__); 
   #define NTT(kind,vv,...) vv = CreateNt(kind, __VA_ARGS__); 
   #define EMPTY(vv) { GETLOC; vv = CreateToken(Token,"",0,loc->first_line,loc->first_column); }
+
+  void AddGSym(yyscan_t scanner,int i, SymType t); 
 }
 
 %%
@@ -80,7 +83,7 @@ usings_list
 
 using_dir
   : USING IDENTIFIER '.' IDENTIFIER ';' { NTT(Using,$$,$2) }
-  | USING IDENTIFIER ';' { NTT(Using,$$,$2); }
+  | USING IDENTIFIER ';' { NTT(Using,$$,$2); AddGSym(scanner, $2, SymUsing);}
   ;
 
 decl_or_func_list
@@ -220,3 +223,12 @@ expr
   ;
 
 %%
+
+void AddGSym(yyscan_t scanner,int i, SymType t) {
+  GETLOC;
+  Span s = SPAN((Byte*)NodeName[i], NodeLen[i]);
+  char* error = SymGAdd(s, t);
+  if(error) {
+    yyerror(loc, scanner, error);
+  }
+}

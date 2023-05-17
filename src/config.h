@@ -44,7 +44,7 @@ typedef enum {
 
 // Symbol table
 #define MAXGLOBALEXP     10
-#define MAXGLOBALSYMBOLS (a << MAXGLOBALEXP)
+#define MAXGLOBALSYMBOLS (1 << MAXGLOBALEXP)
 #define MAXLOCALSYMBOLS  KB(1)
 #define MAXSCOPES        50
 

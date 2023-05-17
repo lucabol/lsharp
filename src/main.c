@@ -2,11 +2,15 @@
 #define BUFFER_IMPL
 #define OS_STDC_IMPL
 #define AST_IMPL
+#define SYMTABLE_IMPL
+#define HASH_IMPL
 
+#include "ulib/Hash.h"
 #include "config.h"
 #include "lcs.lex.h"
 #include "ast.h"
 #include "visit.h"
+#include "symtable.h"
 
 // Buffers for the header and code files for the generated code. Also for reading and writing the files.
 // TODO: need to malloc different ones instead of using same one
@@ -132,9 +136,6 @@ int themain(int argc, char* argv[]) {
 
     printBuffer(tempDirValue, hname, &h);
     printBuffer(tempDirValue, cname, &c);
-
-    
-    return ret;
   }
 
   return 0;

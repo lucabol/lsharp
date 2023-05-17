@@ -2,8 +2,6 @@
 #define SYMTABLE_H
 
 #include "config.h"
-
-#define HASH_IMPL
 #include "ulib/Hash.h"
 
 #define LOADFACTOR 60
@@ -22,12 +20,16 @@ extern int   ScopeStack[MAXSCOPES];
 extern int   ScopeIndex;
 extern int   SymGLength;
 
-inline void
+inline char*
 SymLAdd(Span s, SymType t) {
+  if(NextLIndex > MAXLOCALSYMBOLS) {
+    return "Too many local symbols.";
+  }
   SymLcl  [NextLIndex] = s.ptr;
   SymLLen [NextLIndex] = s.len;
   SymLType[NextLIndex] = t;
   NextLIndex++;
+  return NULL;
 }
 
 inline int
@@ -63,7 +65,7 @@ SymGAdd(Span sym, SymType t) {
 
     Span e = SPAN(ptr, SymGLen[i]);
 
-    if(SpanEqual(sym, e)) {
+    if(SpanEqual(sym, e) && SymGType[i] == t) {
       return "Global redefinition of symbol.";
     }
   }
