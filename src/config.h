@@ -21,20 +21,28 @@ typedef enum {
   Generic = 0,
   Token,
   PrimitiveType,
+  QualIdentifier,
   WithLine,
+  Using,
 } Kind;
 
 #include "lcs.tab.h"
 
+#define KB(x) ((x) * 1024)
+#define MB(x) (KB(x) * 1024)
+
 // How big of a source file we can read
-#define MAXFILESIZE 1024 * 1024
+#define MAXFILESIZE MB(1)
 
 // AST features
-#define MAXSYMBOLS 1024
+#define MAXNODES KB(64)
 
+// Symbol table
+#define MAXGLOBALSYMBOLS KB(10)
+#define MAXLOCALSYMBOLS  KB(1)
 
 // Switching C grammar features off
-#define POINTERS  "you can't use pointers - use indexed slices instead."
+#define POINTERS    "you can't use pointers - use indexed slices instead."
 #define REFERENCES  "you can't use references - use indexed slices instead."
 
 #endif

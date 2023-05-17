@@ -52,6 +52,21 @@ void VisitChildren(int node, Context* ctx) {
   }
 }
 
+void VisitUsing(int node, Context* ctx) {
+  int afterUsing = Child(node, 1);
+  Kind kind      = NodeKind[afterUsing];
+
+  if(kind == Token) {
+    BufferMLCopy(0, ctx->h, S("#include \""), ChildValue(node, 1),S(".h\""));
+  } else if(kind == QualIdentifier){
+    Span beforeDot = ChildValue(afterUsing, 1);
+    Span afterDot  = ChildValue(afterUsing, 3);
+    BufferMLCopy(0, ctx->h, S("#include \""), beforeDot, S("."), afterDot, S(".h\""));
+  } else {
+    die("Unknown term after using");
+  }
+}
+
 char *itoa(long n)
 {
     static char buf[15];
@@ -78,5 +93,10 @@ void visit(int node, Context* ctx) {
       BufferSLCopy(' ', ctx->c, "\n", "#line ", itoa(line), "\"", ctx->filename, "\"");
       VisitChildren(node, ctx);
       break;
+    case Using: // Change Using to import
+      VisitUsing(node, ctx);
+      break;
+    case QualIdentifier:
+      die("Qualified identifiers shouldn't be in this position.");
     }
 }

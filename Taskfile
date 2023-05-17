@@ -19,7 +19,9 @@ function buildcs {    # Build CSharp
   mkdir -p $CSBIN
 
   for T in $TARGETS; do
-    echo "return main(); " | cat "$TESTDIR/$T.cs" - | ./dotnet-csc - -out:"$CSBIN/$T.dll"
+    echo "void printf(string s, params object[] objs){}return main(); " |
+    cat "$TESTDIR/$T.cs" - |
+    ./dotnet-csc src/Ns.cs - -nowarn:0219,8321 -out:"$CSBIN/$T.dll"
   done
 }
 

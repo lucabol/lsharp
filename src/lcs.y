@@ -21,7 +21,7 @@
 %glr-parser
 %expect 21
 
-%token NAMESPACE "namespace" USING "using" IDENTIFIER "identifier" CONSTANT "constant" STRING_LITERAL "string literal" SIZEOF "sizeof"
+%token NAMESPACE "namespace" USING "using" IDENTIFIER "identifier" QUALIDENTIFIER "qualified identifier" CONSTANT "constant" STRING_LITERAL "string literal" SIZEOF "sizeof"
 %token INC_OP "++" DEC_OP "--" LEFT_OP "<<" RIGHT_OP ">>" LE_OP "<=" GE_OP ">=" EQ_OP "==" NE_OP "!="
 %token AND_OP "&&" OR_OP "||" MUL_ASSIGN "*=" DIV_ASSIGN "/=" MOD_ASSIGN "%=" ADD_ASSIGN "+="
 %token SUB_ASSIGN "-=" LEFT_ASSIGN "<<=" RIGHT_ASSIGN ">>=" AND_ASSIGN "&="
@@ -78,7 +78,8 @@ usings_list
   ;
 
 using_dir
-  : USING IDENTIFIER ';' { NT($$,$1,$2,$3) }
+  : USING IDENTIFIER '.' IDENTIFIER ';' { NTT(Using,$$,$2) }
+  | USING IDENTIFIER ';' { NTT(Using,$$,$2); }
   ;
 
 decl_or_func_list
