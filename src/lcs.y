@@ -6,6 +6,7 @@
   #include "config.h"
   #include "lcs.lex.h"
   #include "ast.h"
+  #include "symtable.h"
 }
 
 %define locations

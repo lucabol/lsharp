@@ -26,6 +26,11 @@ typedef enum {
   Using,
 } Kind;
 
+typedef enum {
+  SymUsing,
+  SymCUsing,
+} SymType;
+
 #include "lcs.tab.h"
 
 #define KB(x) ((x) * 1024)
@@ -38,8 +43,10 @@ typedef enum {
 #define MAXNODES KB(64)
 
 // Symbol table
-#define MAXGLOBALSYMBOLS KB(10)
+#define MAXGLOBALEXP     10
+#define MAXGLOBALSYMBOLS (a << MAXGLOBALEXP)
 #define MAXLOCALSYMBOLS  KB(1)
+#define MAXSCOPES        50
 
 // Switching C grammar features off
 #define POINTERS    "you can't use pointers - use indexed slices instead."
