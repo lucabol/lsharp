@@ -82,8 +82,9 @@ usings_list
   ;
 
 using_dir
-  : USING IDENTIFIER '.' IDENTIFIER ';' { NTT(Using,$$,$2) }
-  | USING IDENTIFIER ';' { NTT(Using,$$,$2); AddGSym(scanner, $2, SymUsing);}
+  : USING IDENTIFIER '.' IDENTIFIER ';' { NTT(Using,$$,$2); AddGSym(scanner, $2, SymCUsing); }
+  | USING IDENTIFIER ';'                { NTT(Using,$$,$2); AddGSym(scanner, $2, SymUsing);}
+  | USING STRING_LITERAL ';'            { NTT(Using,$$,$2); AddGSym(scanner, $2, SymQuotedUsing);}
   ;
 
 decl_or_func_list

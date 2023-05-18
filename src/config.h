@@ -29,6 +29,7 @@ typedef enum {
 typedef enum {
   SymUsing,
   SymCUsing,
+  SymQuotedUsing,
 } SymType;
 
 #include "lcs.tab.h"

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 TARGETS=$(basename -s .cs -a $(ls ./test) | paste -sd " " -)
 TESTDIR="test"
 

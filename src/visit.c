@@ -12,6 +12,7 @@
 #include "config.h"
 #include "ast.h"
 #include "visit.h"
+#include "symtable.h"
 
 Span GetSpan(int node) {
   char* s = NodeName[node]; 
@@ -57,7 +58,15 @@ void VisitUsing(int node, Context* ctx) {
   Kind kind      = NodeKind[afterUsing];
 
   if(kind == Token) {
-    BufferMLCopy(0, ctx->h, S("#include \""), ChildValue(node, 1),S(".h\""));
+    Span value = ChildValue(node, 1);
+    int symbol = SymGFind(value);
+    if(symbol == -1) die("Using symbol not found");
+    SymType t = SymGType[symbol];
+    if(t == SymQuotedUsing) {
+      BufferMLCopy(0, ctx->h, S("#include "), value);
+    } else {
+      BufferMLCopy(0, ctx->h, S("#include \""), value, S(".h\""));
+    }
   } else if(kind == QualIdentifier){
     Span beforeDot = ChildValue(afterUsing, 1);
     Span afterDot  = ChildValue(afterUsing, 3);

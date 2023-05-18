@@ -59,6 +59,7 @@ SymGAdd(Span sym, SymType t) {
     if(ptr == 0) {
       SymGbl[i]  = sym.ptr;
       SymGLen[i] = sym.len;
+      SymGType[i] = t;
       SymGLength++;
       return 0;
     }
@@ -72,7 +73,7 @@ SymGAdd(Span sym, SymType t) {
 }
 
 inline int
-SymgGFind(Span sym) {
+SymGFind(Span sym) {
   assert(SpanValid(sym));
 
   uint64_t h = HashString(sym.ptr, (int32_t)sym.len);

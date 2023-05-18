@@ -2,8 +2,8 @@
 #define BUFFER_IMPL
 #define OS_STDC_IMPL
 #define AST_IMPL
-#define SYMTABLE_IMPL
 #define HASH_IMPL
+#define SYMTABLE_IMPL
 
 #include "ulib/Hash.h"
 #include "config.h"
@@ -18,7 +18,7 @@ Byte  _code[MAXFILESIZE], _header[MAXFILESIZE], _infile[MAXFILESIZE];
 
 void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg) {
   Env* env = yyget_extra(scanner);
-  fprintf(stderr, " %s %i:%i: error: %s\n", env->filename, locp->first_column, locp->first_line, msg);
+  fprintf(stderr, " %s %i:%i: error: %s\n", env->filename, locp->first_line, locp->first_column, msg);
 }
 
 Span buildFileName(Byte* buffer, int len, char* path, char* dir, char* ext) {
@@ -106,9 +106,10 @@ int themain(int argc, char* argv[]) {
     biggerSpan.ptr[biggerSpan.len - 1] = 0;
 
     yyscan_t scanner;
-    if(yydebug) yyset_debug(1, scanner);
 
     yylex_init_extra(&env, &scanner);
+    if(yydebug) yyset_debug(1, scanner);
+
     YY_BUFFER_STATE state = yy_scan_buffer((char*)biggerSpan.ptr, (int)biggerSpan.len, scanner);
     int ret = yyparse(scanner);
     yy_delete_buffer(state, scanner);
