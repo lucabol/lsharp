@@ -127,8 +127,9 @@ int themain(int argc, char* argv[]) {
     Byte cbuf[512];
     Span hname = buildFileName(hbuf, sizeof(hbuf), filename, tempDirValue, ".h");
     Span cname = buildFileName(cbuf, sizeof(cbuf),filename, tempDirValue, ".c");
+    Span nsp   = SpanExtractFileName('/', SpanFromString(filename));
 
-    Context ctx = { .c = &c, .h = &h, .filename = filename };
+    Context ctx = { .c = &c, .h = &h, .filename = filename, .name_space = nsp };
 
     hpreamble(&h);
     cpreamble(&c, hname);

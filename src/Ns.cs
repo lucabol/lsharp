@@ -1,4 +1,4 @@
-namespace stdio {}
+namespace stdio { }
 namespace Stdio {}
-namespace stdio.h {}
+namespace stdio.h { }
 namespace Stdio.h {}

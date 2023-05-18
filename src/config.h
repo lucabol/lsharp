@@ -24,13 +24,26 @@ typedef enum {
   QualIdentifier,
   WithLine,
   Using,
+  FuncDef,
+  FuncCall,
+  QualFuncCall,
+  Block,
 } Kind;
 
 typedef enum {
   SymUsing,
   SymCUsing,
   SymQuotedUsing,
+  SymLocalFunc,
 } SymType;
+
+typedef struct {
+  Buffer* c;
+  Buffer* h;
+  char* filename;
+  Span name_space;
+  bool toHeader;
+} Context;
 
 #include "lcs.tab.h"
 

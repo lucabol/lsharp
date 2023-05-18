@@ -57,6 +57,7 @@
   #define NT(vv,...) vv = CreateNt(Generic, __VA_ARGS__); 
   #define NTT(kind,vv,...) vv = CreateNt(kind, __VA_ARGS__); 
   #define EMPTY(vv) { GETLOC; vv = CreateToken(Token,"",0,loc->first_line,loc->first_column); }
+  #define ST(name,sym) AddGSym(scanner, name, sym)
 
   void AddGSym(yyscan_t scanner,int i, SymType t); 
 }
@@ -82,9 +83,9 @@ usings_list
   ;
 
 using_dir
-  : USING IDENTIFIER '.' IDENTIFIER ';' { NTT(Using,$$,$2); AddGSym(scanner, $2, SymCUsing); }
-  | USING IDENTIFIER ';'                { NTT(Using,$$,$2); AddGSym(scanner, $2, SymUsing);}
-  | USING STRING_LITERAL ';'            { NTT(Using,$$,$2); AddGSym(scanner, $2, SymQuotedUsing);}
+  : USING IDENTIFIER '.' IDENTIFIER ';' { NTT(Using,$$,$2); ST($2,SymCUsing); }
+  | USING IDENTIFIER ';'                { NTT(Using,$$,$2); ST($2,SymUsing);}
+  | USING STRING_LITERAL ';'            { NTT(Using,$$,$2); ST($2,SymQuotedUsing);}
   ;
 
 decl_or_func_list
@@ -151,11 +152,12 @@ assign
   ;
 
 func
-  : type IDENTIFIER '(' param_list ')' block { NT($$,$1,$2,$3,$4,$5,$6) }
+  : type IDENTIFIER '(' param_list ')' block { NTT(FuncDef,$$,$1,$2,$3,$4,$5,$6); ST($2,SymLocalFunc); }
   ;
 
 funccall
-  : IDENTIFIER '(' expr_list ')' { NT($$,$1,$2,$3,$4) }
+  : IDENTIFIER '(' expr_list ')' { NTT(FuncCall,$$,$1,$2,$3,$4) }
+  | IDENTIFIER '.' IDENTIFIER '(' expr_list ')' { NTT(QualFuncCall,$$,$1,$2,$3,$4,$5,$6) }
   ;
 
 param_list
@@ -175,7 +177,7 @@ expr_list
   ;
 
 block
-  : '{' stmts '}' { NT($$,$1,$2,$3) }
+  : '{' stmts '}' { NTT(Block, $$,$1,$2,$3) }
   ;
 
 stmts

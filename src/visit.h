@@ -1,13 +1,8 @@
 #ifndef VISIT_H
 #define VISIT_H
 
+#include "config.h"
 #include "ulib/Buffer.h"
-
-typedef struct {
-  Buffer* c;
-  Buffer* h;
-  char* filename;
-} Context;
 
 void visit(int node, Context* ctx);
 

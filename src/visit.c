@@ -20,9 +20,22 @@ Span GetSpan(int node) {
   return SPAN((Byte*)s, len);
 }
 
-void PrintNode(int node, Buffer* c, Buffer* h) {
+void PrintNode(int node, Context* ctx) {
   Span sp = GetSpan(node);
-  BufferMCopy(ispunct(sp.ptr[0]) ? 0 : ' ', c, sp);
+  char spacing = ispunct(sp.ptr[0]) ? 0 : ' '; 
+
+  int symbol = SymGFind(sp);
+  Span pre = S("");
+
+  if(symbol != -1 && SymGType[symbol] == SymLocalFunc && !SpanEqual(sp, S("main"))) {
+    pre = ctx->name_space;
+    spacing = 0;
+  };
+
+  BufferMCopy(spacing, ctx->c, pre, sp);
+  if(ctx->toHeader) {
+    BufferMCopy(spacing, ctx->h, pre, sp);
+  }
 }
 
 Span ttypes[] = { S("bool"),S("byte"),S("sbyte"),S("char"),S("double"),S("float"),
@@ -30,12 +43,15 @@ Span ttypes[] = { S("bool"),S("byte"),S("sbyte"),S("char"),S("double"),S("float"
 Span stypes[] = { S("bool"),S("int8_t"),S("sbyte"),S("char"),S("double"),S("float"),
   S("int32_t"),S("uint32_t"),S("int"),S("unsigned int"),S("int64_t"),S("uint64_t"),S("int16_t"),S("uint16_t")};
 
-void PrintPrimitiveType(int node, Buffer*c, Buffer* h) {
+void PrintPrimitiveType(int node, Context* ctx) {
   Span sp = GetSpan(node);
   for(size_t i = 0; i < sizeof(ttypes) / sizeof(ttypes[0]); i++) {
     if(SpanEqual(ttypes[i], sp)) {
       Span newType = stypes[i];
-      BufferMCopy(' ', c, newType);
+      BufferMCopy(' ', ctx->c, newType);
+      if(ctx->toHeader) {
+        BufferMCopy(' ', ctx->h, newType);
+      }
       break;
     }
   }
@@ -76,6 +92,28 @@ void VisitUsing(int node, Context* ctx) {
   }
 }
 
+void VisitQualFunc(int node, Context* ctx) {
+  Span namespace = ChildValue(node,1);
+
+  int nsNode = SymGFind(namespace);
+  switch(SymGType[nsNode]) {
+    case SymUsing:
+      visit(Child(node,1), ctx);
+      visit(Child(node,3), ctx);
+      visit(Child(node,4), ctx);
+      visit(Child(node,5), ctx);
+      visit(Child(node,6), ctx);
+      break;
+    case SymCUsing:
+      visit(Child(node,3), ctx);
+      visit(Child(node,4), ctx);
+      visit(Child(node,5), ctx);
+      visit(Child(node,6), ctx);
+      break;
+    default:
+      die("Qualified function call without a corresponding 'using' statement.");
+  }
+}
 char *itoa(long n)
 {
     static char buf[15];
@@ -89,13 +127,13 @@ void visit(int node, Context* ctx) {
 
   switch(NodeKind[node]) {
     case Token:
-      PrintNode(node, ctx->c, ctx->h);
+      PrintNode(node, ctx);
       break;
     case Generic:
       VisitChildren(node, ctx);
       break;
     case PrimitiveType: // Standarize size of ints
-      PrintPrimitiveType(node, ctx->c, ctx->h);
+      PrintPrimitiveType(node, ctx);
       break;
     case WithLine: // Insert file and line numbers
       line = NodeLine[node];
@@ -104,6 +142,21 @@ void visit(int node, Context* ctx) {
       break;
     case Using: // Change Using to import
       VisitUsing(node, ctx);
+      break;
+    case FuncDef:
+      ctx->toHeader = true;
+      VisitChildren(node, ctx);
+      BufferSLCopy(0,ctx->h, ";");
+      break;
+    case FuncCall:
+      VisitChildren(node, ctx);
+      break;
+    case QualFuncCall:
+      VisitQualFunc(node, ctx);
+      break;
+    case Block:
+      ctx->toHeader = false;
+      VisitChildren(node, ctx);
       break;
     case QualIdentifier:
       die("Qualified identifiers shouldn't be in this position.");

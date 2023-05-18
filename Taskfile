@@ -1,6 +1,7 @@
 #!/bin/bash
 
-set -e
+CSTARGETS=$(basename -s .cs -a $(ls ./cstest) | paste -sd " " -)
+CSTESTDIR="test"
 
 TARGETS=$(basename -s .cs -a $(ls ./test) | paste -sd " " -)
 TESTDIR="test"
@@ -18,9 +19,9 @@ function buildcs {    # Build CSharp
 
   mkdir -p $CSBIN
 
-  for T in $TARGETS; do
+  for T in $CSTARGETS; do
     echo "void printf(string s, params object[] objs){}return main(); " |
-    cat "$TESTDIR/$T.cs" - |
+    cat "$CSTESTDIR/$T.cs" - |
     ./dotnet-csc src/Ns.cs - -nowarn:0219,8321 -out:"$CSBIN/$T.dll"
   done
 }
@@ -52,19 +53,43 @@ function buildall {  # Build all version
   clean
 
   builddriver
+  buildd
+  buildr
+}
+function buildallcs {  # Build all version and CS
+  clean
+
+  builddriver
   buildcs
   buildd
   buildr
 }
-function test {    # Runs something
-  buildall
 
-  for T in $TARGETS; do
+function cstest {    # Runs tests and cstests
+  buildallcs
+
+  for T in $CSTARGETS; do
     R1=$(dotnet "$CSBIN/$T.dll")
     R2=$($DBIN/$T > /dev/null)
     R3=$($RBIN/$T > /dev/null)
 
     if [ "$R1" = "$R2" ] && [ "$R2" = "$R3" ];
+    then
+      echo "OK: $T"
+    else
+      echo "ERROR: $T"
+    fi
+  done
+}
+
+function test {    # Runs tests
+  buildall
+
+  for T in $TARGETS; do
+    R2=$($DBIN/$T > /dev/null)
+    R3=$($RBIN/$T > /dev/null)
+
+    if [ "$R2" = "$R3" ];
     then
       echo "OK: $T"
     else
