@@ -22,8 +22,17 @@ Span GetSpan(int node) {
   return SPAN((Byte*)s, len);
 }
 
-void PrintNode(int node, Context* ctx) {
+void ResetState(Context* ctx) {
+    ctx->typeName    = SPAN0;
+    ctx->globalDecl  = false;
+    ctx->isSliceType = false;
+    ctx->toHeader    = false;
+}
+
+void VisitToken(int node, Context* ctx) {
+
   Span sp = GetSpan(node);
+
   char spacing = ispunct(sp.ptr[0]) ? 0 : ' '; 
 
   int symbol = SymGFind(sp);
@@ -121,12 +130,74 @@ void VisitQualFunc(int node, Context* ctx) {
       die("Qualified function call with a using statement of an unknown kind");
   }
 }
+
+void VisitFuncDef(int node, Context* ctx) {
+  ctx->toHeader = true;
+  visit(Child(node,1), ctx);
+  visit(Child(node,2), ctx);
+  visit(Child(node,3), ctx);
+  visit(Child(node,4), ctx);
+  visit(Child(node,5), ctx);
+  BufferSLCopy(0,ctx->h, ";");
+  ctx->toHeader = false;
+  visit(Child(node,6), ctx);
+}
+
+void ExtractType(int node, Context* ctx) {
+  int maybeValueType = node;
+  Kind nk = NodeKind[maybeValueType];
+
+  if(nk == Token || nk == PrimitiveType) {
+    ctx->typeName = GetSpan(maybeValueType);
+  } else {
+    int sliceType = Child(maybeValueType, 1);
+    if(NodeKind[sliceType] != Token) {
+      die("The first node of a slice type is not a token??");
+    }
+    ctx->typeName    = GetSpan(sliceType);
+    ctx->isSliceType = true;
+  }
+}
+
+void EmitExternDecl(Span varName, Context* ctx) {
+  BufferMLCopy(' ', ctx->h, S("extern"), ctx->typeName, varName, ctx->isSliceType ? S("[]") : S(""), S(";"));
+}
+
+void VisitDecl(int node, Context* ctx) {
+
+  if(ctx->globalDecl) {
+    ExtractType(Child(node, 1), ctx);
+    int maybeToken = Child(node, 2);
+    if(NodeKind[maybeToken] == Token) {
+      EmitExternDecl(GetSpan(maybeToken), ctx);
+    } else {
+      int sliceToken = Child(maybeToken, 1);
+      if(NodeKind[sliceToken] != Token) {
+        die("The first node of a slice assignment node is not a token??");
+      }
+      EmitExternDecl(GetSpan(sliceToken), ctx);
+    }
+  }
+
+  VisitChildren(node, ctx);
+}
+
+
+void trace(int node, Context* ctx) {
+  Span s = GetSpan(node);
+  char* v = s.ptr == 0 ? "" : (char*)SpanTo1KTempString(s);
+
+  printf("%-15s %-10s ", NodeStr(NodeKind[node]), v);
+  if(ctx->typeName.ptr != 0) OsPrintSpan(ctx->typeName);
+  printf("%s\n", "");
+}
 void visit(int node, Context* ctx) {
   //int line = 0;
+  //trace(node,ctx);
 
   switch(NodeKind[node]) {
     case Token:
-      PrintNode(node, ctx);
+      VisitToken(node, ctx);
       break;
     case Generic:
       VisitChildren(node, ctx);
@@ -143,20 +214,20 @@ void visit(int node, Context* ctx) {
     case Using: // Change Using to import
       VisitUsing(node, ctx);
       break;
-    case FuncDef:
-      ctx->toHeader = true;
-      VisitChildren(node, ctx);
-      BufferSLCopy(0,ctx->h, ";");
+    case FuncDef: // Generate an external function declaration in the header
+      VisitFuncDef(node, ctx);
       break;
-    case FuncCall:
+    case GlobalDecl: // Set a flag to remember the last type name while walking the ast
+      ctx->globalDecl = true;
       VisitChildren(node, ctx);
+      ctx->globalDecl = false;
       break;
-    case QualFuncCall:
+    case QualFuncCall: // Prepend the correct qualifier to a function call
       VisitQualFunc(node, ctx);
       break;
-    case Block:
-      ctx->toHeader = false;
-      VisitChildren(node, ctx);
+    case Decl: // Emit extern declarations in header file
+      VisitDecl(node, ctx);
+      //VisitChildren(node, ctx);
       break;
     case QualIdentifier:
       die("Qualified identifiers shouldn't be in this position.");

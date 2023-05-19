@@ -1,5 +1,6 @@
 using Lib;
 
 int main() {
-  return Lib.Pow(3) - 9;
+  nint n = Lib.Ni();
+  return Lib.Pow(n) - 9;
 }

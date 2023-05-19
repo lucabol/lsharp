@@ -18,18 +18,30 @@ typedef struct {
   Buffer* e;
 } Env;
 
+#define NODETYPES \
+  X(Generic) \
+  X(Token) \
+  X(PrimitiveType) \
+  X(QualIdentifier) \
+  X(WithLine) \
+  X(Using) \
+  X(FuncDef) \
+  X(QualFuncCall) \
+  X(GlobalDecl) \
+  X(Decl)
+
+#define X(n) n,
 typedef enum {
-  Generic = 0,
-  Token,
-  PrimitiveType,
-  QualIdentifier,
-  WithLine,
-  Using,
-  FuncDef,
-  FuncCall,
-  QualFuncCall,
-  Block,
+  NODETYPES
 } Kind;
+#undef X
+
+#define X(n) if(node == n) return #n;
+inline static const char* NodeStr(Kind node) {
+  NODETYPES
+  return "UNknown node type";
+}
+#undef X
 
 typedef enum {
   SymUsing,
@@ -42,9 +54,14 @@ typedef struct {
   Buffer* c;
   Buffer* h;
   Buffer* e;
+
   char* filename;
   Span name_space;
+
   bool toHeader;
+  bool globalDecl;
+  bool isSliceType;
+  Span typeName;
 } Context;
 
 #include "lcs.tab.h"

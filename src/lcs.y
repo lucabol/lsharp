@@ -97,7 +97,7 @@ decl_or_func_list
   ;
 
 decl_or_func
-  : decl
+  : decl { NTT(GlobalDecl, $$, $1) }
   | func
   ;
 
@@ -125,14 +125,14 @@ decl
   ;
 
 valuedecl
-  : valuetype IDENTIFIER ';' { NT($$,$1,$2,$3) }
-  | valuetype assign assign_list ';' { NT($$,$1,$2,$3,$4) }
+  : valuetype IDENTIFIER ';' { NTT(Decl,$$,$1,$2,$3) }
+  | valuetype assign assign_list ';' { NTT(Decl,$$,$1,$2,$3,$4) }
   ;
 
 slicedecl
-  : slicetype IDENTIFIER ';' { NT($$,$1,$2,$3) }
-  | valuetype IDENTIFIER '[' expr ']' ';' { NT($$,$1,$2,$3,$4,$5,$6) }
-  | slicetype sliceassign sliceassign_list ';' { NT($$,$1,$2,$3,$4) }
+  : slicetype IDENTIFIER ';' { NTT(Decl,$$,$1,$2,$3) }
+  | valuetype IDENTIFIER '[' expr ']' ';' { NTT(Decl,$$,$1,$2,$3,$4,$5,$6) }
+  | slicetype sliceassign sliceassign_list ';' { NTT(Decl,$$,$1,$2,$3,$4) }
   ;
 
 sliceassign_list
@@ -159,7 +159,7 @@ func
   ;
 
 funccall
-  : IDENTIFIER '(' expr_list ')' { NTT(FuncCall,$$,$1,$2,$3,$4) }
+  : IDENTIFIER '(' expr_list ')' { NT($$,$1,$2,$3,$4) }
   | IDENTIFIER '.' IDENTIFIER '(' expr_list ')' { NTT(QualFuncCall,$$,$1,$2,$3,$4,$5,$6) }
   ;
 
@@ -180,7 +180,7 @@ expr_list
   ;
 
 block
-  : '{' stmts '}' { NTT(Block, $$,$1,$2,$3) }
+  : '{' stmts '}' { NT($$,$1,$2,$3) }
   ;
 
 stmts

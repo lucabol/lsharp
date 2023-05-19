@@ -1,0 +1,141 @@
+Generic                    
+Token                      
+Generic                    
+Token                      
+Using                      
+Generic                    
+Generic                    
+Generic                    
+Token                      
+GlobalDecl                 
+Decl                       
+PrimitiveType   int        int
+Generic                    int
+Token           d1         int
+Token           =          int
+Token           3          int
+Token                      int
+Token           ;          int
+GlobalDecl                 int
+Decl                       int
+PrimitiveType   int        int
+Generic                    int
+Token           d2         int
+Token           =          int
+Token           3          int
+Token                      int
+Token           ;          int
+FuncDef                    int
+PrimitiveType   int        int
+Token           main       int
+Token           (          int
+Token                      int
+Token           )          int
+Generic                    int
+Token           {          int
+Generic                    int
+Generic                    int
+Generic                    int
+Generic                    int
+Generic                    int
+Generic                    int
+Token                      int
+WithLine                   int
+Decl                       int
+PrimitiveType   double     int
+Generic                    int
+Token           dd1        int
+Token           =          int
+Token           3          int
+Generic                    int
+Token                      int
+Token           ,          int
+Generic                    int
+Token           dd2        int
+Token           =          int
+Token           5          int
+Token           ;          int
+WithLine                   int
+Decl                       int
+PrimitiveType   long       int
+Generic                    int
+Token           k          int
+Token           =          int
+Token           13         int
+Generic                    int
+Token                      int
+Token           ,          int
+Generic                    int
+Token           j          int
+Token           =          int
+Token           28         int
+Token           ;          int
+WithLine                   int
+Decl                       int
+PrimitiveType   short      int
+Generic                    int
+Token           f          int
+Token           =          int
+Token           12         int
+Token                      int
+Token           ;          int
+WithLine                   int
+Decl                       int
+PrimitiveType   byte       int
+Generic                    int
+Token           bb         int
+Token           =          int
+Token           10         int
+Token                      int
+Token           ;          int
+WithLine                   int
+Generic                    int
+Token           printf     int
+Token           (          int
+Generic                    int
+Generic                    int
+Generic                    int
+Generic                    int
+Generic                    int
+Generic                    int
+Token           "%f %f %ld %ld %i %i" int
+Token           ,          int
+Token           dd1        int
+Token           ,          int
+Token           dd2        int
+Token           ,          int
+Token           k          int
+Token           ,          int
+Token           j          int
+Token           ,          int
+Token           f          int
+Token           ,          int
+Token           bb         int
+Token           )          int
+Token           ;          int
+WithLine                   int
+Token           return     int
+Generic                    int
+Generic                    int
+Generic                    int
+Generic                    int
+Generic                    int
+Token           (          int
+Generic                    int
+Generic                    int
+Token           d1         int
+Token           *          int
+Token           d2         int
+Token           +          int
+Token           d2         int
+Token           )          int
+Token           *          int
+Token           d2         int
+Token           /          int
+Token           d2         int
+Token           *          int
+Token           3          int
+Token           -          int
+Token           36         int
+Token           ;          int
+Token           }          int
