@@ -17,6 +17,12 @@ extern int   NextId;
 extern int   NodeChildren[];
 
 inline void
+AstInit() {
+  NextChild = 0;
+  NextId    = 0;
+}
+
+inline void
 die(const char *msg) {
   fprintf(stderr, "%s\n", msg);
   abort();
@@ -98,4 +104,6 @@ int   CreateToken(Kind kind, char* ptr, int len, int line, int column);
 Span  ChildValue(int node, int num);
 int   Child(int node, int num);
 void  die(const char *msg);
+void AstInit();
+
 #endif

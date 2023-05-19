@@ -5,5 +5,5 @@ using stdio.h;
 //using "math.h"; // This Works!!! But disabled to keep C# illusion going.
 
 int main() {
-  return 1;
+  return 0;
 }

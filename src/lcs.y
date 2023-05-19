@@ -58,8 +58,10 @@
   #define NTT(kind,vv,...) vv = CreateNt(kind, __VA_ARGS__); 
   #define EMPTY(vv) { GETLOC; vv = CreateToken(Token,"",0,loc->first_line,loc->first_column); }
   #define ST(name,sym) AddGSym(scanner, name, sym)
+  #define STQ(name,sym) AddGSymQuoted(scanner, name, sym)
 
   void AddGSym(yyscan_t scanner,int i, SymType t); 
+void AddGSymQuoted(yyscan_t scanner,int i, SymType t);
 }
 
 %%
@@ -85,7 +87,7 @@ usings_list
 using_dir
   : USING IDENTIFIER '.' IDENTIFIER ';' { NTT(Using,$$,$2); ST($2,SymCUsing); }
   | USING IDENTIFIER ';'                { NTT(Using,$$,$2); ST($2,SymUsing);}
-  | USING STRING_LITERAL ';'            { NTT(Using,$$,$2); ST($2,SymQuotedUsing);}
+  | USING STRING_LITERAL ';'            { NTT(Using,$$,$2); STQ($2,SymQuotedUsing);}
   ;
 
 decl_or_func_list
@@ -230,6 +232,15 @@ expr
 void AddGSym(yyscan_t scanner,int i, SymType t) {
   GETLOC;
   Span s = SPAN((Byte*)NodeName[i], NodeLen[i]);
+  char* error = SymGAdd(s, t);
+  if(error) {
+    yyerror(loc, scanner, error);
+  }
+}
+void AddGSymQuoted(yyscan_t scanner,int i, SymType t) {
+  GETLOC;
+  Span sq = SPAN((Byte*)NodeName[i], NodeLen[i]);
+  Span s  = SPAN(sq.ptr + 1, sq.len - 2);
   char* error = SymGAdd(s, t);
   if(error) {
     yyerror(loc, scanner, error);

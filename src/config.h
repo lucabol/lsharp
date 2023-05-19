@@ -40,6 +40,7 @@ typedef enum {
 typedef struct {
   Buffer* c;
   Buffer* h;
+  Buffer* e;
   char* filename;
   Span name_space;
   bool toHeader;
@@ -52,9 +53,14 @@ typedef struct {
 
 // How big of a source file we can read
 #define MAXFILESIZE MB(1)
+// How big the buffer for errors
+#define MAXERRORBUF KB(1)
 
 // AST features
 #define MAXNODES KB(64)
+
+// Max length of command line to invoke the C compiler
+#define MAXCMDLINE KB(1)
 
 // Symbol table
 #define MAXGLOBALEXP     10
@@ -65,5 +71,12 @@ typedef struct {
 // Switching C grammar features off
 #define POINTERS    "you can't use pointers - use indexed slices instead."
 #define REFERENCES  "you can't use references - use indexed slices instead."
+
+// C compiler options (in gcc terms)
+#define COMP   "gcc"
+#define OPT_g  "-g" 
+#define OPT_O  "-Ofast" 
+#define OPT_o  "-o" 
+#define OPT_c  "-c" 
 
 #endif

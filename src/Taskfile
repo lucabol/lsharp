@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 CFLAGS="-g3 -Wall -Wextra -Wconversion -Wdouble-promotion
      -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion
      -fsanitize=undefined -fsanitize-undefined-trap-on-error -Wno-missing-braces"
@@ -13,7 +11,7 @@ function clean {    # Clean things
 function build {    # Build stuff
    flex lcs.l
    bison -d lcs.y
-   gcc -Wall -Wextra $CFLAGS lcs.tab.c lex.yy.c visit.c main.c -o lcs
+   gcc $CFLAGS lcs.tab.c lex.yy.c visit.c main.c -o lcs
 }
 
 function run {    # Runs something

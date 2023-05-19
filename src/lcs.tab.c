@@ -225,10 +225,12 @@ static YYLTYPE yyloc_default
   #define NTT(kind,vv,...) vv = CreateNt(kind, __VA_ARGS__); 
   #define EMPTY(vv) { GETLOC; vv = CreateToken(Token,"",0,loc->first_line,loc->first_column); }
   #define ST(name,sym) AddGSym(scanner, name, sym)
+  #define STQ(name,sym) AddGSymQuoted(scanner, name, sym)
 
   void AddGSym(yyscan_t scanner,int i, SymType t); 
+void AddGSymQuoted(yyscan_t scanner,int i, SymType t);
 
-#line 232 "lcs.tab.c"
+#line 234 "lcs.tab.c"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -548,15 +550,15 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    68,    68,    76,    77,    81,    82,    86,    87,    88,
-      92,    93,    97,    98,   102,   103,   107,   108,   109,   110,
-     111,   115,   116,   120,   121,   125,   126,   130,   131,   132,
-     136,   137,   141,   142,   143,   147,   148,   151,   155,   159,
-     160,   164,   165,   166,   170,   174,   175,   176,   180,   184,
-     185,   189,   190,   191,   192,   193,   194,   195,   199,   200,
-     201,   202,   203,   204,   205,   206,   207,   208,   209,   210,
-     211,   212,   213,   214,   215,   216,   217,   218,   219,   220,
-     221,   222,   223,   224,   225
+       0,    70,    70,    78,    79,    83,    84,    88,    89,    90,
+      94,    95,    99,   100,   104,   105,   109,   110,   111,   112,
+     113,   117,   118,   122,   123,   127,   128,   132,   133,   134,
+     138,   139,   143,   144,   145,   149,   150,   153,   157,   161,
+     162,   166,   167,   168,   172,   176,   177,   178,   182,   186,
+     187,   191,   192,   193,   194,   195,   196,   197,   201,   202,
+     203,   204,   205,   206,   207,   208,   209,   210,   211,   212,
+     213,   214,   215,   216,   217,   218,   219,   220,   221,   222,
+     223,   224,   225,   226,   227
 };
 #endif
 
@@ -1449,419 +1451,419 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
   switch (yyrule)
     {
   case 2: /* translation_unit: namespace_decl usings_list decl_or_func_list  */
-#line 68 "lcs.y"
+#line 70 "lcs.y"
                                                  {
     NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval)
     Env* env = yyget_extra(scanner);
     env->startNode = (*yyvalp);
     }
-#line 1459 "lcs.tab.c"
+#line 1461 "lcs.tab.c"
     break;
 
   case 3: /* namespace_decl: %empty  */
-#line 76 "lcs.y"
+#line 78 "lcs.y"
            {EMPTY((*yyvalp))}
-#line 1465 "lcs.tab.c"
+#line 1467 "lcs.tab.c"
     break;
 
   case 4: /* namespace_decl: "namespace" "identifier" ';'  */
-#line 77 "lcs.y"
+#line 79 "lcs.y"
                              { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1471 "lcs.tab.c"
+#line 1473 "lcs.tab.c"
     break;
 
   case 5: /* usings_list: %empty  */
-#line 81 "lcs.y"
+#line 83 "lcs.y"
            {EMPTY((*yyvalp))}
-#line 1477 "lcs.tab.c"
+#line 1479 "lcs.tab.c"
     break;
 
   case 6: /* usings_list: usings_list using_dir  */
-#line 82 "lcs.y"
+#line 84 "lcs.y"
                           { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1483 "lcs.tab.c"
+#line 1485 "lcs.tab.c"
     break;
 
   case 7: /* using_dir: "using" "identifier" '.' "identifier" ';'  */
-#line 86 "lcs.y"
+#line 88 "lcs.y"
                                         { NTT(Using,(*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval); ST(YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval,SymCUsing); }
-#line 1489 "lcs.tab.c"
+#line 1491 "lcs.tab.c"
     break;
 
   case 8: /* using_dir: "using" "identifier" ';'  */
-#line 87 "lcs.y"
+#line 89 "lcs.y"
                                         { NTT(Using,(*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval); ST(YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,SymUsing);}
-#line 1495 "lcs.tab.c"
+#line 1497 "lcs.tab.c"
     break;
 
   case 9: /* using_dir: "using" "string literal" ';'  */
-#line 88 "lcs.y"
-                                        { NTT(Using,(*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval); ST(YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,SymQuotedUsing);}
-#line 1501 "lcs.tab.c"
+#line 90 "lcs.y"
+                                        { NTT(Using,(*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval); STQ(YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,SymQuotedUsing);}
+#line 1503 "lcs.tab.c"
     break;
 
   case 10: /* decl_or_func_list: %empty  */
-#line 92 "lcs.y"
+#line 94 "lcs.y"
            {EMPTY((*yyvalp))}
-#line 1507 "lcs.tab.c"
+#line 1509 "lcs.tab.c"
     break;
 
   case 11: /* decl_or_func_list: decl_or_func_list decl_or_func  */
-#line 93 "lcs.y"
+#line 95 "lcs.y"
                                    { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1513 "lcs.tab.c"
+#line 1515 "lcs.tab.c"
     break;
 
   case 16: /* valuetype: "primitive type"  */
-#line 107 "lcs.y"
+#line 109 "lcs.y"
           { (*yyvalp) = CreateToken(PrimitiveType, NodeName[YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval] , NodeLen[YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval], yylloc.first_line, yylloc.first_column); }
-#line 1519 "lcs.tab.c"
+#line 1521 "lcs.tab.c"
     break;
 
   case 19: /* valuetype: "identifier" '*'  */
-#line 110 "lcs.y"
+#line 112 "lcs.y"
                    { GETLOC; yyerror(loc, scanner, POINTERS);}
-#line 1525 "lcs.tab.c"
+#line 1527 "lcs.tab.c"
     break;
 
   case 20: /* valuetype: "primitive type" '*'  */
-#line 111 "lcs.y"
+#line 113 "lcs.y"
               { GETLOC; yyerror(loc, scanner, POINTERS);}
-#line 1531 "lcs.tab.c"
+#line 1533 "lcs.tab.c"
     break;
 
   case 21: /* slicetype: valuetype "[]"  */
-#line 115 "lcs.y"
+#line 117 "lcs.y"
                        { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1537 "lcs.tab.c"
+#line 1539 "lcs.tab.c"
     break;
 
   case 22: /* slicetype: valuetype '[' expr_list ']'  */
-#line 116 "lcs.y"
+#line 118 "lcs.y"
                                 { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1543 "lcs.tab.c"
+#line 1545 "lcs.tab.c"
     break;
 
   case 25: /* valuedecl: valuetype "identifier" ';'  */
-#line 125 "lcs.y"
+#line 127 "lcs.y"
                              { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1549 "lcs.tab.c"
+#line 1551 "lcs.tab.c"
     break;
 
   case 26: /* valuedecl: valuetype assign assign_list ';'  */
-#line 126 "lcs.y"
+#line 128 "lcs.y"
                                      { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1555 "lcs.tab.c"
+#line 1557 "lcs.tab.c"
     break;
 
   case 27: /* slicedecl: slicetype "identifier" ';'  */
-#line 130 "lcs.y"
+#line 132 "lcs.y"
                              { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1561 "lcs.tab.c"
+#line 1563 "lcs.tab.c"
     break;
 
   case 28: /* slicedecl: valuetype "identifier" '[' expr ']' ';'  */
-#line 131 "lcs.y"
+#line 133 "lcs.y"
                                           { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-5)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-4)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1567 "lcs.tab.c"
+#line 1569 "lcs.tab.c"
     break;
 
   case 29: /* slicedecl: slicetype sliceassign sliceassign_list ';'  */
-#line 132 "lcs.y"
+#line 134 "lcs.y"
                                                { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1573 "lcs.tab.c"
+#line 1575 "lcs.tab.c"
     break;
 
   case 30: /* sliceassign_list: %empty  */
-#line 136 "lcs.y"
+#line 138 "lcs.y"
            {EMPTY((*yyvalp))}
-#line 1579 "lcs.tab.c"
+#line 1581 "lcs.tab.c"
     break;
 
   case 31: /* sliceassign_list: sliceassign_list ',' sliceassign  */
-#line 137 "lcs.y"
+#line 139 "lcs.y"
                                      { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1585 "lcs.tab.c"
+#line 1587 "lcs.tab.c"
     break;
 
   case 32: /* sliceassign: "identifier" '=' '{' expr_list '}'  */
-#line 141 "lcs.y"
+#line 143 "lcs.y"
                                      { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-4)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1591 "lcs.tab.c"
+#line 1593 "lcs.tab.c"
     break;
 
   case 33: /* sliceassign: "identifier" '=' "new" valuetype '[' expr ']'  */
-#line 142 "lcs.y"
+#line 144 "lcs.y"
                                                 { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-6)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-5)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-4)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1597 "lcs.tab.c"
+#line 1599 "lcs.tab.c"
     break;
 
   case 34: /* sliceassign: "identifier" '=' expr  */
-#line 143 "lcs.y"
+#line 145 "lcs.y"
                         { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1603 "lcs.tab.c"
+#line 1605 "lcs.tab.c"
     break;
 
   case 35: /* assign_list: %empty  */
-#line 147 "lcs.y"
+#line 149 "lcs.y"
            {EMPTY((*yyvalp))}
-#line 1609 "lcs.tab.c"
+#line 1611 "lcs.tab.c"
     break;
 
   case 36: /* assign_list: assign_list ',' assign  */
-#line 148 "lcs.y"
+#line 150 "lcs.y"
                            { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1615 "lcs.tab.c"
+#line 1617 "lcs.tab.c"
     break;
 
   case 37: /* assign: "identifier" '=' expr  */
-#line 151 "lcs.y"
+#line 153 "lcs.y"
                         { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1621 "lcs.tab.c"
+#line 1623 "lcs.tab.c"
     break;
 
   case 38: /* func: type "identifier" '(' param_list ')' block  */
-#line 155 "lcs.y"
+#line 157 "lcs.y"
                                              { NTT(FuncDef,(*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-5)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-4)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval); ST(YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-4)].yystate.yysemantics.yyval,SymLocalFunc); }
-#line 1627 "lcs.tab.c"
+#line 1629 "lcs.tab.c"
     break;
 
   case 39: /* funccall: "identifier" '(' expr_list ')'  */
-#line 159 "lcs.y"
+#line 161 "lcs.y"
                                  { NTT(FuncCall,(*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1633 "lcs.tab.c"
+#line 1635 "lcs.tab.c"
     break;
 
   case 40: /* funccall: "identifier" '.' "identifier" '(' expr_list ')'  */
-#line 160 "lcs.y"
+#line 162 "lcs.y"
                                                 { NTT(QualFuncCall,(*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-5)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-4)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1639 "lcs.tab.c"
+#line 1641 "lcs.tab.c"
     break;
 
   case 41: /* param_list: %empty  */
-#line 164 "lcs.y"
+#line 166 "lcs.y"
            {EMPTY((*yyvalp))}
-#line 1645 "lcs.tab.c"
+#line 1647 "lcs.tab.c"
     break;
 
   case 43: /* param_list: param_list ',' paramdecl  */
-#line 166 "lcs.y"
+#line 168 "lcs.y"
                              { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1651 "lcs.tab.c"
+#line 1653 "lcs.tab.c"
     break;
 
   case 44: /* paramdecl: type "identifier"  */
-#line 170 "lcs.y"
+#line 172 "lcs.y"
                     { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1657 "lcs.tab.c"
+#line 1659 "lcs.tab.c"
     break;
 
   case 45: /* expr_list: %empty  */
-#line 174 "lcs.y"
+#line 176 "lcs.y"
            {EMPTY((*yyvalp))}
-#line 1663 "lcs.tab.c"
+#line 1665 "lcs.tab.c"
     break;
 
   case 47: /* expr_list: expr_list ',' expr  */
-#line 176 "lcs.y"
+#line 178 "lcs.y"
                        { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1669 "lcs.tab.c"
+#line 1671 "lcs.tab.c"
     break;
 
   case 48: /* block: '{' stmts '}'  */
-#line 180 "lcs.y"
+#line 182 "lcs.y"
                   { NTT(Block, (*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1675 "lcs.tab.c"
+#line 1677 "lcs.tab.c"
     break;
 
   case 49: /* stmts: %empty  */
-#line 184 "lcs.y"
+#line 186 "lcs.y"
            {EMPTY((*yyvalp))}
-#line 1681 "lcs.tab.c"
+#line 1683 "lcs.tab.c"
     break;
 
   case 50: /* stmts: stmts stmt  */
-#line 185 "lcs.y"
+#line 187 "lcs.y"
                { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1687 "lcs.tab.c"
+#line 1689 "lcs.tab.c"
     break;
 
   case 51: /* stmt: ';'  */
-#line 189 "lcs.y"
+#line 191 "lcs.y"
         { NTT(WithLine,(*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval); }
-#line 1693 "lcs.tab.c"
+#line 1695 "lcs.tab.c"
     break;
 
   case 52: /* stmt: block  */
-#line 190 "lcs.y"
+#line 192 "lcs.y"
           { NTT(WithLine,(*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval); }
-#line 1699 "lcs.tab.c"
+#line 1701 "lcs.tab.c"
     break;
 
   case 53: /* stmt: decl  */
-#line 191 "lcs.y"
+#line 193 "lcs.y"
          { NTT(WithLine,(*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval); }
-#line 1705 "lcs.tab.c"
+#line 1707 "lcs.tab.c"
     break;
 
   case 54: /* stmt: expr ';'  */
-#line 192 "lcs.y"
+#line 194 "lcs.y"
              { NTT(WithLine,(*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval, YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval); }
-#line 1711 "lcs.tab.c"
+#line 1713 "lcs.tab.c"
     break;
 
   case 55: /* stmt: "while" '(' expr ')' block  */
-#line 193 "lcs.y"
+#line 195 "lcs.y"
                              { NTT(WithLine,(*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-4)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1717 "lcs.tab.c"
+#line 1719 "lcs.tab.c"
     break;
 
   case 56: /* stmt: "return" expr ';'  */
-#line 194 "lcs.y"
+#line 196 "lcs.y"
                     { NTT(WithLine,(*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1723 "lcs.tab.c"
+#line 1725 "lcs.tab.c"
     break;
 
   case 57: /* stmt: "if" '(' expr ')' block "else" block  */
-#line 195 "lcs.y"
+#line 197 "lcs.y"
                                      { NTT(WithLine,(*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-6)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-5)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-4)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1729 "lcs.tab.c"
+#line 1731 "lcs.tab.c"
     break;
 
   case 63: /* expr: '(' expr ')'  */
-#line 204 "lcs.y"
+#line 206 "lcs.y"
                  { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1735 "lcs.tab.c"
+#line 1737 "lcs.tab.c"
     break;
 
   case 64: /* expr: expr '+' expr  */
-#line 205 "lcs.y"
+#line 207 "lcs.y"
                   { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1741 "lcs.tab.c"
+#line 1743 "lcs.tab.c"
     break;
 
   case 65: /* expr: expr '-' expr  */
-#line 206 "lcs.y"
+#line 208 "lcs.y"
                   { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1747 "lcs.tab.c"
+#line 1749 "lcs.tab.c"
     break;
 
   case 66: /* expr: expr '*' expr  */
-#line 207 "lcs.y"
+#line 209 "lcs.y"
                   { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1753 "lcs.tab.c"
+#line 1755 "lcs.tab.c"
     break;
 
   case 67: /* expr: expr '/' expr  */
-#line 208 "lcs.y"
+#line 210 "lcs.y"
                   { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1759 "lcs.tab.c"
+#line 1761 "lcs.tab.c"
     break;
 
   case 68: /* expr: expr '%' expr  */
-#line 209 "lcs.y"
+#line 211 "lcs.y"
                   { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1765 "lcs.tab.c"
+#line 1767 "lcs.tab.c"
     break;
 
   case 69: /* expr: expr ">>" expr  */
-#line 210 "lcs.y"
+#line 212 "lcs.y"
                    { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1771 "lcs.tab.c"
+#line 1773 "lcs.tab.c"
     break;
 
   case 70: /* expr: expr "<<" expr  */
-#line 211 "lcs.y"
+#line 213 "lcs.y"
                    { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1777 "lcs.tab.c"
+#line 1779 "lcs.tab.c"
     break;
 
   case 71: /* expr: expr "<=" expr  */
-#line 212 "lcs.y"
+#line 214 "lcs.y"
                    { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1783 "lcs.tab.c"
+#line 1785 "lcs.tab.c"
     break;
 
   case 72: /* expr: expr ">=" expr  */
-#line 213 "lcs.y"
+#line 215 "lcs.y"
                    { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1789 "lcs.tab.c"
+#line 1791 "lcs.tab.c"
     break;
 
   case 73: /* expr: expr ">" expr  */
-#line 214 "lcs.y"
+#line 216 "lcs.y"
                   { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1795 "lcs.tab.c"
+#line 1797 "lcs.tab.c"
     break;
 
   case 74: /* expr: expr '<' expr  */
-#line 215 "lcs.y"
+#line 217 "lcs.y"
                   { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1801 "lcs.tab.c"
+#line 1803 "lcs.tab.c"
     break;
 
   case 75: /* expr: expr "==" expr  */
-#line 216 "lcs.y"
+#line 218 "lcs.y"
                    { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1807 "lcs.tab.c"
+#line 1809 "lcs.tab.c"
     break;
 
   case 76: /* expr: expr "!=" expr  */
-#line 217 "lcs.y"
+#line 219 "lcs.y"
                    { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1813 "lcs.tab.c"
+#line 1815 "lcs.tab.c"
     break;
 
   case 77: /* expr: expr "&" expr  */
-#line 218 "lcs.y"
+#line 220 "lcs.y"
                   { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1819 "lcs.tab.c"
+#line 1821 "lcs.tab.c"
     break;
 
   case 78: /* expr: expr "|" expr  */
-#line 219 "lcs.y"
+#line 221 "lcs.y"
                   { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1825 "lcs.tab.c"
+#line 1827 "lcs.tab.c"
     break;
 
   case 79: /* expr: expr "^" expr  */
-#line 220 "lcs.y"
+#line 222 "lcs.y"
                   { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1831 "lcs.tab.c"
+#line 1833 "lcs.tab.c"
     break;
 
   case 80: /* expr: expr "&&" expr  */
-#line 221 "lcs.y"
+#line 223 "lcs.y"
                    { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1837 "lcs.tab.c"
+#line 1839 "lcs.tab.c"
     break;
 
   case 81: /* expr: expr "||" expr  */
-#line 222 "lcs.y"
+#line 224 "lcs.y"
                    { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1843 "lcs.tab.c"
+#line 1845 "lcs.tab.c"
     break;
 
   case 82: /* expr: '-' expr  */
-#line 223 "lcs.y"
+#line 225 "lcs.y"
                        { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1849 "lcs.tab.c"
+#line 1851 "lcs.tab.c"
     break;
 
   case 83: /* expr: '+' expr  */
-#line 224 "lcs.y"
+#line 226 "lcs.y"
                        { NT((*yyvalp),YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval,YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval) }
-#line 1855 "lcs.tab.c"
+#line 1857 "lcs.tab.c"
     break;
 
   case 84: /* expr: '&' expr  */
-#line 225 "lcs.y"
+#line 227 "lcs.y"
              { GETLOC; yyerror(loc, scanner, REFERENCES);}
-#line 1861 "lcs.tab.c"
+#line 1863 "lcs.tab.c"
     break;
 
 
-#line 1865 "lcs.tab.c"
+#line 1867 "lcs.tab.c"
 
       default: break;
     }
@@ -3625,12 +3627,21 @@ yypdumpstack (yyGLRStack* yystackp)
 
 
 
-#line 228 "lcs.y"
+#line 230 "lcs.y"
 
 
 void AddGSym(yyscan_t scanner,int i, SymType t) {
   GETLOC;
   Span s = SPAN((Byte*)NodeName[i], NodeLen[i]);
+  char* error = SymGAdd(s, t);
+  if(error) {
+    yyerror(loc, scanner, error);
+  }
+}
+void AddGSymQuoted(yyscan_t scanner,int i, SymType t) {
+  GETLOC;
+  Span sq = SPAN((Byte*)NodeName[i], NodeLen[i]);
+  Span s  = SPAN(sq.ptr + 1, sq.len - 2);
   char* error = SymGAdd(s, t);
   if(error) {
     yyerror(loc, scanner, error);

@@ -27,6 +27,7 @@ void PrintNode(int node, Context* ctx) {
   int symbol = SymGFind(sp);
   Span pre = S("");
 
+  // Local functions need to be prepended by the namespace
   if(symbol != -1 && SymGType[symbol] == SymLocalFunc && !SpanEqual(sp, S("main"))) {
     pre = ctx->name_space;
     spacing = 0;
@@ -96,10 +97,12 @@ void VisitQualFunc(int node, Context* ctx) {
   Span namespace = ChildValue(node,1);
 
   int nsNode = SymGFind(namespace);
+  if(nsNode == -1) {
+    die("Function call without a corresponding using statement.");
+  }
   switch(SymGType[nsNode]) {
     case SymUsing:
-      visit(Child(node,1), ctx);
-      visit(Child(node,3), ctx);
+      BufferMCopy(0, ctx->c, namespace, ChildValue(node,3));
       visit(Child(node,4), ctx);
       visit(Child(node,5), ctx);
       visit(Child(node,6), ctx);

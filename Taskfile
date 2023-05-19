@@ -4,15 +4,19 @@ CSTARGETS=$(basename -s .cs -a $(ls ./cstest) | paste -sd " " -)
 CSTESTDIR="test"
 
 TARGETS=$(basename -s .cs -a $(ls ./test) | paste -sd " " -)
+
 TESTDIR="test"
+MULTITESTDIR="testmulti"
+MULTITARGETS=$(ls $MULTITESTDIR/*.cs)
 
 CSBIN="csbin"
-DBGDIR="debug"
- DBIN="dbin"
- RBIN="rbin"
+ RBIN="bin"
+COMP="lcs"
+
+# set -x
 
 function clean {    # Clean things
-    rm -f $CSBIN/* $DBIN/* $RBIN/* $DBGDIR/*
+    rm -f $CSBIN/*  $RBIN/* $COMP
 }
 
 function buildcs {    # Build CSharp
@@ -26,54 +30,33 @@ function buildcs {    # Build CSharp
   done
 }
 
-function builddriver {   # Build LSharp precompiler driver
+function build {   # Build LSharp precompiler driver
   pushd ./src > /dev/null
   ./Taskfile build
-  cp lcs ../
+  cp $COMP ../
   popd > /dev/null
 }
 
-function buildd {    # Build C in debug mode
-  mkdir -p $DBIN
-
-  for T in $TARGETS; do
-    ./lcsc -g -o$DBIN/$T "$TESTDIR/$T.cs"
-  done
-}
-
-function buildr {    # Build C in release mode
+function buildtests {    # Build tests
   mkdir -p $RBIN
 
   for T in $TARGETS; do
-    ./lcsc -o$RBIN/$T "$TESTDIR/$T.cs"
+    ./$COMP -o$RBIN/$T "$TESTDIR/$T.cs"
   done
+
+  ./$COMP -o"$RBIN/Multi" $MULTITARGETS
 }
 
-function buildall {  # Build all version
-  clean
-
-  builddriver
-  buildd
-  buildr
-}
-function buildallcs {  # Build all version and CS
-  clean
-
-  builddriver
-  buildcs
-  buildd
-  buildr
-}
 
 function cstest {    # Runs tests and cstests
-  buildallcs
+  build
+  buildtests
 
   for T in $CSTARGETS; do
     R1=$(dotnet "$CSBIN/$T.dll")
-    R2=$($DBIN/$T > /dev/null)
-    R3=$($RBIN/$T > /dev/null)
+    R2=$($RBIN/$T > /dev/null)
 
-    if [ "$R1" = "$R2" ] && [ "$R2" = "$R3" ];
+    if [ "$R1" = "$R2" ] ;
     then
       echo "OK: $T"
     else
@@ -83,13 +66,13 @@ function cstest {    # Runs tests and cstests
 }
 
 function test {    # Runs tests
-  buildall
+  build
+  buildtests
 
-  for T in $TARGETS; do
-    R2=$($DBIN/$T > /dev/null)
-    R3=$($RBIN/$T > /dev/null)
+  for T in $TARGETS Multi; do
+    $RBIN/$T > /dev/null
 
-    if [ "$R2" = "$R3" ];
+    if [ $? -eq "0" ];
     then
       echo "OK: $T"
     else

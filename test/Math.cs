@@ -10,5 +10,5 @@ int main() {
   byte bb = 10;
 
   printf("%f %f %ld %ld %i %i", dd1, dd2, k, j, f, bb);
-  return (d1 * d2 + d2) * d2 / d2 * 3;
+  return (d1 * d2 + d2) * d2 / d2 * 3 - 36;
 }

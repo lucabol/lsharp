@@ -20,6 +20,16 @@ extern int   ScopeStack[MAXSCOPES];
 extern int   ScopeIndex;
 extern int   SymGLength;
 
+inline void
+SymInit() {
+  memset(SymGbl,   0, MAXGLOBALSYMBOLS * sizeof(SymGbl[0]));
+  memset(SymGLen,  0, MAXGLOBALSYMBOLS * sizeof(SymGLen[0]));
+  memset(SymGType, 0, MAXGLOBALSYMBOLS * sizeof(SymGType[0]));
+  SymGLength = 0;
+
+  NextLIndex = 0;
+}
+
 inline char*
 SymLAdd(Span s, SymType t) {
   if(NextLIndex > MAXLOCALSYMBOLS) {
@@ -112,4 +122,6 @@ char* SymLAdd(Span s, SymType t);
 int   SymLFind(Span sym);
 char* SymGAdd(Span s, SymType t);
 int   SymGFind(Span sym);
+void  SymInit();
+
 #endif

@@ -14,7 +14,7 @@
 
 // Buffers for the header and code files for the generated code. Also for reading and writing the files.
 // TODO: need to malloc different ones instead of using same one
-Byte  _code[MAXFILESIZE], _header[MAXFILESIZE], _infile[MAXFILESIZE];
+Byte  _code[MAXFILESIZE], _header[MAXFILESIZE], _infile[MAXFILESIZE], _errors[MAXERRORBUF];
 
 void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg) {
   Env* env = yyget_extra(scanner);
@@ -58,12 +58,17 @@ void cpreamble(Buffer* b, Span inclName) {
 void hpreamble(Buffer* b) {
   BufferSLCopy(0,b, "#include <stdint.h>\n#include <stdbool.h>");
 }
+
 int themain(int argc, char* argv[]) {
 
   int k, index;
   char* tempDirValue = "/tmp";
 
-  while ((k = getopt (argc, argv, "bdt:")) != -1) {
+  Byte _cmd[MAXCMDLINE];
+  Buffer cmd = BufferInit(_cmd, MAXCMDLINE);
+  BufferSCopy(' ', &cmd, COMP);
+
+  while ((k = getopt (argc, argv, "gOco:pdt:")) != -1) {
     switch(k) {
       case 'd':
         yydebug = 1;
@@ -71,8 +76,20 @@ int themain(int argc, char* argv[]) {
       case 't':
         tempDirValue = optarg;
         break;
-      case 'b':
+      case 'p':
         tempDirValue = NULL;
+        break;
+      case 'g':
+        BufferSCopy(' ', &cmd, " ", OPT_g);
+        break;
+      case 'O':
+        BufferSCopy(' ', &cmd, " ", OPT_O);
+        break;
+      case 'c':
+        BufferSCopy(' ', &cmd, " ", OPT_c);
+        break;
+      case 'o':
+        BufferSCopy(' ', &cmd, " ", OPT_o, optarg);
         break;
       default:
         abort();
@@ -81,6 +98,9 @@ int themain(int argc, char* argv[]) {
 
   for (index = optind; index < argc; index++) {
     
+    SymInit();
+    AstInit();
+
     Buffer file = BufferInit(_infile, MAXFILESIZE);
 
     char* filename = argv[index];
@@ -115,13 +135,13 @@ int themain(int argc, char* argv[]) {
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
-    // Parsing failed
-    if(ret != 0) {
+    if(ret != 0) { // Error in syntactic analysis (parsing)
       return ret;
     }
 
     Buffer c    = BufferInit(_code, MAXFILESIZE);
     Buffer h    = BufferInit(_header, MAXFILESIZE);
+    Buffer e    = BufferInit(_errors, MAXERRORBUF);
 
     Byte hbuf[512];
     Byte cbuf[512];
@@ -129,15 +149,30 @@ int themain(int argc, char* argv[]) {
     Span cname = buildFileName(cbuf, sizeof(cbuf),filename, tempDirValue, ".c");
     Span nsp   = SpanExtractFileName('/', SpanFromString(filename));
 
-    Context ctx = { .c = &c, .h = &h, .filename = filename, .name_space = nsp };
+    Context ctx = { .c = &c, .h = &h, .e = &e, .filename = filename, .name_space = nsp };
 
     hpreamble(&h);
     cpreamble(&c, hname);
 
     visit(env.startNode, &ctx);
+    if(ctx.e->index) { // Errors in semantic analysis
+      OsPrintBuffer(ctx.e);
+      return -2;
+    }
 
     printBuffer(tempDirValue, hname, &h);
     printBuffer(tempDirValue, cname, &c);
+    
+    if(tempDirValue) {
+      BufferMCopy(' ', &cmd, cname);
+    }
+  }
+
+  BufferSCopy(' ', &cmd, "-lm");
+
+  if(tempDirValue) {
+    char* scmd = (char*)SpanTo1KTempString(BufferToSpan(&cmd));
+    system(scmd);
   }
 
   return 0;

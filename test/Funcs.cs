@@ -7,5 +7,5 @@ int Square(int x) {
 
 int main() {
   stdio.printf("%i", 2);
-  return Square(3);
+  return Square(3) - 9;
 }
