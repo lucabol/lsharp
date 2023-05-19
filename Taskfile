@@ -37,14 +37,26 @@ function build {   # Build LSharp precompiler driver
   popd > /dev/null
 }
 
+col=10
+
+function checkResult {
+    if [ $? -eq "0" ];
+    then
+      printf "%-10s%-10s%s\n" $1 $2 "OK"
+    else
+      printf "%-10s%-10s%s\n" $1 $2 "ERROR"
+    fi
+}
 function buildtests {    # Build tests
   mkdir -p $RBIN
 
   for T in $TARGETS; do
     ./$COMP -o$RBIN/$T "$TESTDIR/$T.cs"
+    checkResult "Compiling" $T
   done
 
   ./$COMP -o"$RBIN/Multi" $MULTITARGETS
+  checkResult "Compiling" "Multi"
 }
 
 
@@ -67,17 +79,14 @@ function cstest {    # Runs tests and cstests
 
 function test {    # Runs tests
   build
+  echo
   buildtests
+  echo
 
   for T in $TARGETS Multi; do
     $RBIN/$T > /dev/null
 
-    if [ $? -eq "0" ];
-    then
-      echo "OK: $T"
-    else
-      echo "ERROR: $T"
-    fi
+    checkResult "Running" $T
   done
 }
 

@@ -14,6 +14,8 @@
 #include "visit.h"
 #include "symtable.h"
 
+#define ERR(node, msg) PushError(ctx->e, ctx->filename, NodeLine[node], NodeColumn[node], msg)
+
 Span GetSpan(int node) {
   char* s = NodeName[node]; 
   int len = NodeLen[node];
@@ -77,7 +79,8 @@ void VisitUsing(int node, Context* ctx) {
   if(kind == Token) {
     Span value = ChildValue(node, 1);
     int symbol = SymGFind(value);
-    if(symbol == -1) die("Using symbol not found");
+    if(symbol == -1) die("Using symbol not found in the symbol table??");
+
     SymType t = SymGType[symbol];
     if(t == SymQuotedUsing) {
       BufferMLCopy(0, ctx->h, S("#include "), value);
@@ -89,7 +92,7 @@ void VisitUsing(int node, Context* ctx) {
     Span afterDot  = ChildValue(afterUsing, 3);
     BufferMLCopy(0, ctx->h, S("#include \""), beforeDot, S("."), afterDot, S(".h\""));
   } else {
-    die("Unknown term after using");
+    die("Found a using idenfitier with an unknown type in the symbol table??");
   }
 }
 
@@ -98,7 +101,8 @@ void VisitQualFunc(int node, Context* ctx) {
 
   int nsNode = SymGFind(namespace);
   if(nsNode == -1) {
-    die("Function call without a corresponding using statement.");
+    ERR(node, "Qualified function call without a corresponding using statement.");
+    return;
   }
   switch(SymGType[nsNode]) {
     case SymUsing:
@@ -114,17 +118,9 @@ void VisitQualFunc(int node, Context* ctx) {
       visit(Child(node,6), ctx);
       break;
     default:
-      die("Qualified function call without a corresponding 'using' statement.");
+      die("Qualified function call with a using statement of an unknown kind");
   }
 }
-char *itoa(long n)
-{
-    static char buf[15];
-
-    snprintf(buf, sizeof(buf), "%ld", n);
-    return   buf;
-}
-
 void visit(int node, Context* ctx) {
   //int line = 0;
 

@@ -16,11 +16,6 @@
 // TODO: need to malloc different ones instead of using same one
 Byte  _code[MAXFILESIZE], _header[MAXFILESIZE], _infile[MAXFILESIZE], _errors[MAXERRORBUF];
 
-void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg) {
-  Env* env = yyget_extra(scanner);
-  fprintf(stderr, " %s %i:%i: error: %s\n", env->filename, locp->first_line, locp->first_column, msg);
-}
-
 Span buildFileName(Byte* buffer, int len, char* path, char* dir, char* ext) {
   
     Buffer btmp = BufferInit(buffer, len);
@@ -106,21 +101,21 @@ int themain(int argc, char* argv[]) {
 
     char* filename = argv[index];
 
-    SpanResult sr = OsSlurp(filename, MAXFILESIZE, &file);
+    Buffer e    = BufferInit(_errors, MAXERRORBUF);
 
     Env env = {
       .startNode = -1,
-      .filename = filename
+      .filename = filename,
+      .e = &e,
     };
 
+    SpanResult sr = OsSlurp(filename, MAXFILESIZE, &file);
     if(sr.error) {
-      fprintf(stderr, "%s\n", sr.error);
-      return -1;
+      die(sr.error);
     }
     // For flex, you need to add two 0 bytes at the end of the buffer to avoid copying the data.
     if(sr.data.len > MAXFILESIZE - 2) {
-      fprintf(stderr, "%s\n", "File too big.");
-      return -1;
+      die("File too big.");
     }
     Span biggerSpan = SPAN(sr.data.ptr, sr.data.len + 2);
     biggerSpan.ptr[biggerSpan.len - 2] = 0;
@@ -136,13 +131,12 @@ int themain(int argc, char* argv[]) {
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
-    if(ret != 0) { // Error in syntactic analysis (parsing)
-      return ret;
+    if(env.e->index || ret) { // Errors in syntactic analys. Should we not exit here and do semantic analysis?
+      OsPrintBuffer(env.e);
+      return 1;
     }
-
     Buffer c    = BufferInit(_code, MAXFILESIZE);
     Buffer h    = BufferInit(_header, MAXFILESIZE);
-    Buffer e    = BufferInit(_errors, MAXERRORBUF);
 
     Byte hbuf[512];
     Byte cbuf[512];
@@ -156,9 +150,9 @@ int themain(int argc, char* argv[]) {
     cpreamble(&c, hname);
 
     visit(env.startNode, &ctx);
-    if(ctx.e->index) { // Errors in semantic analysis
+    if(ctx.e->index) { // Errors in semantic analysis.
       OsPrintBuffer(ctx.e);
-      return -2;
+      return 1;
     }
 
     printBuffer(tempDirValue, hname, &h);

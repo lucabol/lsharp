@@ -3309,7 +3309,7 @@ static const struct yy_trans_info *yy_start_state_list[5] =
   #include "ast.h"
 
   int check_type(void);
-
+  void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg);
 
 #define YY_USER_ACTION \
     *yylval = CreateToken(Token, yytext, yyleng, yylloc->first_line, yylloc->first_column); \
@@ -5114,6 +5114,11 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #line 111 "lcs.l"
 
+
+void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg) {
+  Env* env = yyget_extra(scanner);
+  PushError(env->e, env->filename, locp->first_line, locp->first_column, (char*)msg);
+}
 
 int check_type(void)
 {

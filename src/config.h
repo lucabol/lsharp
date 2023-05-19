@@ -15,6 +15,7 @@
 typedef struct {
   char* filename;
   int startNode;
+  Buffer* e;
 } Env;
 
 typedef enum {
@@ -83,4 +84,17 @@ typedef struct {
      " -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion" \
      " -fsanitize=undefined -fsanitize-undefined-trap-on-error -Wno-missing-braces -lm"
 
+static inline char*
+itoa(long n)
+{
+    static char buf[15];
+
+    snprintf(buf, sizeof(buf), "%ld", n);
+    return   buf;
+}
+
+static inline void
+PushError(Buffer* e, char* filename, int firstline, int firstcolumn, char* msg) {
+  BufferSLCopy(0, e, filename, " error: ", itoa(firstline), ":", itoa(firstline), " ", msg);
+}
 #endif

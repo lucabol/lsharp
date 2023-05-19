@@ -19,7 +19,7 @@ IS		(u|U|l|L)*
   #include "ast.h"
 
   int check_type(void);
-
+  void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg);
 
 #define YY_USER_ACTION \
     *yylval = CreateToken(Token, yytext, yyleng, yylloc->first_line, yylloc->first_column); \
@@ -40,7 +40,7 @@ IS		(u|U|l|L)*
 %%
 
 <INITIAL>{
-  "/*"              BEGIN(IN_COMMENT);
+  "/*"      BEGIN(IN_COMMENT);
 }
 <IN_COMMENT>{
   "*/"      BEGIN(INITIAL);
@@ -109,6 +109,11 @@ L?\"(\\.|[^\\"])*\"	{ return(STRING_LITERAL); }
 
 .			    { return(yytext[0]); }
 %%
+
+void yyerror(YYLTYPE *locp, yyscan_t scanner, char const *msg) {
+  Env* env = yyget_extra(scanner);
+  PushError(env->e, env->filename, locp->first_line, locp->first_column, (char*)msg);
+}
 
 int check_type(void)
 {
