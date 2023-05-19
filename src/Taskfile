@@ -4,6 +4,13 @@ CFLAGS="-g3 -Wall -Wextra -Wconversion -Wdouble-promotion
      -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion
      -fsanitize=undefined -fsanitize-undefined-trap-on-error -Wno-missing-braces"
 
+CRFLAGS="-O3 -Wall -Wextra -Wconversion -Wdouble-promotion
+     -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion
+     -Wno-missing-braces"
+
+CSFLAGS="-Os -Wall -Wextra -Wconversion -Wdouble-promotion
+     -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion
+     -Wno-missing-braces -ffunction-sections -fdata-sections -Wl,--gc-sections"
 function clean {    # Clean things
     rm lex.yy.c lcs.tab.c lcs lcs.tab.h
 }
@@ -12,6 +19,17 @@ function build {    # Build stuff
    flex lcs.l
    bison -d lcs.y
    gcc $CFLAGS lcs.tab.c lex.yy.c visit.c main.c -o lcs
+}
+function buildr {    # Build stuff
+   flex lcs.l
+   bison -d lcs.y
+   gcc $CRFLAGS lcs.tab.c lex.yy.c visit.c main.c -o lcsr
+}
+function builds {    # Build stuff
+   flex lcs.l
+   bison -d lcs.y
+   gcc $CSFLAGS lcs.tab.c lex.yy.c visit.c main.c -o lcss
+   strip -s -R .comment -R .gnu.version --strip-unneeded ./lcss
 }
 
 function run {    # Runs something

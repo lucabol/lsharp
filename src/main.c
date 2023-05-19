@@ -67,6 +67,7 @@ int themain(int argc, char* argv[]) {
   Byte _cmd[MAXCMDLINE];
   Buffer cmd = BufferInit(_cmd, MAXCMDLINE);
   BufferSCopy(' ', &cmd, COMP);
+  BufferSCopy(' ', &cmd, CFLAGS);
 
   while ((k = getopt (argc, argv, "gOco:pdt:")) != -1) {
     switch(k) {
@@ -168,11 +169,10 @@ int themain(int argc, char* argv[]) {
     }
   }
 
-  BufferSCopy(' ', &cmd, "-lm");
 
   if(tempDirValue) {
     char* scmd = (char*)SpanTo1KTempString(BufferToSpan(&cmd));
-    system(scmd);
+    return system(scmd);
   }
 
   return 0;

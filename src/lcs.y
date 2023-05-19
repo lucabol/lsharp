@@ -21,7 +21,8 @@
 
 %define lr.type ielr
 %glr-parser
-%expect 21
+%expect 39
+%expect-rr 1
 
 %token NAMESPACE "namespace" USING "using" IDENTIFIER "identifier" QUALIDENTIFIER "qualified identifier" CONSTANT "constant" STRING_LITERAL "string literal" SIZEOF "sizeof"
 %token INC_OP "++" DEC_OP "--" LEFT_OP "<<" RIGHT_OP ">>" LE_OP "<=" GE_OP ">=" EQ_OP "==" NE_OP "!="
@@ -203,6 +204,7 @@ expr
   | IDENTIFIER
   | assign
   | funccall
+  | '(' type ')' expr { NT($$,$1,$2,$3,$4) }
   | '(' expr ')' { NT($$,$1,$2,$3) }
   | expr '+' expr { NT($$,$1,$2,$3) }
   | expr '-' expr { NT($$,$1,$2,$3) }

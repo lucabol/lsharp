@@ -79,4 +79,8 @@ typedef struct {
 #define OPT_o  "-o" 
 #define OPT_c  "-c" 
 
+#define CFLAGS "-Wall -Wextra -Wconversion -Wdouble-promotion" \
+     " -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion" \
+     " -fsanitize=undefined -fsanitize-undefined-trap-on-error -Wno-missing-braces -lm"
+
 #endif

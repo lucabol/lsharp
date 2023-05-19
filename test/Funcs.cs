@@ -2,7 +2,7 @@ using stdio.h;
 using math.h;
 
 int Square(int x) {
-  return math.pow(x, 2);
+  return (int)math.pow(x, 2);
 }
 
 int main() {

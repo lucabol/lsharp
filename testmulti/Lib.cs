@@ -1,5 +1,5 @@
 using math.h;
 
 int Pow(int x) {
-  return math.pow(x,2);
+  return (int)math.pow(x,2);
 }

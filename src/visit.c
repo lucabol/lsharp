@@ -126,7 +126,7 @@ char *itoa(long n)
 }
 
 void visit(int node, Context* ctx) {
-  int line = 0;
+  //int line = 0;
 
   switch(NodeKind[node]) {
     case Token:
@@ -139,8 +139,8 @@ void visit(int node, Context* ctx) {
       PrintPrimitiveType(node, ctx);
       break;
     case WithLine: // Insert file and line numbers
-      line = NodeLine[node];
-      BufferSLCopy(0, ctx->c, "\n", "#line ", itoa(line), " \"", ctx->filename, "\"");
+      //line = NodeLine[node];
+      //BufferSLCopy(0, ctx->c, "\n", "#line ", itoa(line), " \"", ctx->filename, "\"");
       VisitChildren(node, ctx);
       break;
     case Using: // Change Using to import
