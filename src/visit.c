@@ -138,9 +138,10 @@ void visit(int node, Context* ctx) {
     case PrimitiveType: // Standarize size of ints
       PrintPrimitiveType(node, ctx);
       break;
-    case WithLine: // Insert file and line numbers
+    case WithLine: // Insert file and line numbers (or just newlines)
       //line = NodeLine[node];
       //BufferSLCopy(0, ctx->c, "\n", "#line ", itoa(line), " \"", ctx->filename, "\"");
+      BufferSLCopy(0, ctx->c, "");
       VisitChildren(node, ctx);
       break;
     case Using: // Change Using to import
