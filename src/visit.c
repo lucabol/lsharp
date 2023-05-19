@@ -140,7 +140,7 @@ void visit(int node, Context* ctx) {
       break;
     case WithLine: // Insert file and line numbers
       line = NodeLine[node];
-      BufferSLCopy(' ', ctx->c, "\n", "#line ", itoa(line), "\"", ctx->filename, "\"");
+      BufferSLCopy(0, ctx->c, "\n", "#line ", itoa(line), " \"", ctx->filename, "\"");
       VisitChildren(node, ctx);
       break;
     case Using: // Change Using to import
