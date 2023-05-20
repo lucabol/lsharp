@@ -21,7 +21,7 @@
 
 %define lr.type ielr
 %glr-parser
-%expect 38
+%expect 194
 
 %token NAMESPACE "namespace" USING "using" IDENTIFIER "identifier" CONSTANT "constant" STRING_LITERAL "string literal" SIZEOF "sizeof"
 %token INC_OP "++" DEC_OP "--" LEFT_OP "<<" RIGHT_OP ">>" LE_OP "<=" GE_OP ">=" EQ_OP "==" NE_OP "!="
@@ -206,29 +206,35 @@ expr
   | assign
   | funccall
   | qualidentifier
-  | '(' type ')' expr   %dprec 8 { NT($$,$1,$2,$3,$4) }
-  | '(' expr ')'   %dprec 1 { NT($$,$1,$2,$3) }
-  | expr '+' expr  %dprec 1 { NT($$,$1,$2,$3) }
-  | expr '-' expr  %dprec 1 { NT($$,$1,$2,$3) }
-  | expr '*' expr  %dprec 3 { NT($$,$1,$2,$3) }
-  | expr '/' expr  %dprec 1 { NT($$,$1,$2,$3) }
-  | expr '%' expr  %dprec 1 { NT($$,$1,$2,$3) }
-  | expr ">>" expr  %dprec 1 { NT($$,$1,$2,$3) }
-  | expr "<<" expr  %dprec 1 { NT($$,$1,$2,$3) }
-  | expr "<=" expr  %dprec 1 { NT($$,$1,$2,$3) }
-  | expr ">=" expr  %dprec 1 { NT($$,$1,$2,$3) }
-  | expr ">" expr  %dprec 1 { NT($$,$1,$2,$3) }
-  | expr '<' expr  %dprec 1 { NT($$,$1,$2,$3) }
-  | expr "==" expr  %dprec 1 { NT($$,$1,$2,$3) }
-  | expr "!=" expr  %dprec 1 { NT($$,$1,$2,$3) }
-  | expr "&" expr   %dprec 1 { NT($$,$1,$2,$3) }
-  | expr "|" expr  %dprec 1 { NT($$,$1,$2,$3) }
-  | expr "^" expr  %dprec 1 { NT($$,$1,$2,$3) }
-  | expr "&&" expr  %dprec 1 { NT($$,$1,$2,$3) }
-  | expr "||" expr  %dprec 1 { NT($$,$1,$2,$3) }
-  | '-' expr %prec NEG  %dprec 1 { NT($$,$1,$2) }
-  | '+' expr %prec NEG  %dprec 1 { NT($$,$1,$2) }
-  | '&' expr  %dprec 1 { GETLOC; yyerror(loc, scanner, REFERENCES);}
+  | '(' expr ')'           %dprec 1 { NT($$,$1,$2,$3) }
+  | expr ADD_ASSIGN expr   %dprec 1 { NT($$,$1,$2,$3) }
+  | expr MUL_ASSIGN expr   %dprec 1 { NT($$,$1,$2,$3) }
+  | expr DIV_ASSIGN expr   %dprec 1 { NT($$,$1,$2,$3) }
+  | expr SUB_ASSIGN expr   %dprec 1 { NT($$,$1,$2,$3) }
+  | expr MOD_ASSIGN expr   %dprec 1 { NT($$,$1,$2,$3) }
+  | expr '?' expr ':' expr %dprec 2 { NT($$,$1,$2,$3,$4,$5) }
+  | expr "||" expr         %dprec 3 { NT($$,$1,$2,$3) }
+  | expr "&&" expr         %dprec 4 { NT($$,$1,$2,$3) }
+  | expr "|" expr          %dprec 5 { NT($$,$1,$2,$3) }
+  | expr "^" expr          %dprec 6 { NT($$,$1,$2,$3) }
+  | expr "&" expr          %dprec 7 { NT($$,$1,$2,$3) }
+  | expr "==" expr         %dprec 8 { NT($$,$1,$2,$3) }
+  | expr "!=" expr         %dprec 8 { NT($$,$1,$2,$3) }
+  | expr "<=" expr         %dprec 9 { NT($$,$1,$2,$3) }
+  | expr ">=" expr         %dprec 9 { NT($$,$1,$2,$3) }
+  | expr ">" expr          %dprec 9 { NT($$,$1,$2,$3) }
+  | expr '<' expr          %dprec 9 { NT($$,$1,$2,$3) }
+  | expr ">>" expr         %dprec 10 { NT($$,$1,$2,$3) }
+  | expr "<<" expr         %dprec 10 { NT($$,$1,$2,$3) }
+  | expr '+' expr          %dprec 11 { NT($$,$1,$2,$3) }
+  | expr '-' expr          %dprec 11 { NT($$,$1,$2,$3) }
+  | expr '%' expr          %dprec 11 { NT($$,$1,$2,$3) }
+  | expr '*' expr          %dprec 12 { NT($$,$1,$2,$3) }
+  | expr '/' expr          %dprec 12 { NT($$,$1,$2,$3) }
+  | '(' type ')' expr      %dprec 13 { NT($$,$1,$2,$3,$4) }
+  | '-' expr %prec NEG     %dprec 13 { NT($$,$1,$2) }
+  | '+' expr %prec NEG     %dprec 13 { NT($$,$1,$2) }
+  | '&' expr               %dprec 13 { GETLOC; yyerror(loc, scanner, REFERENCES);}
   ;
 
 %%
