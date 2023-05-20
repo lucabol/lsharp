@@ -16,6 +16,12 @@
 // TODO: need to malloc different ones instead of using same one
 Byte  _code[MAXFILESIZE], _header[MAXFILESIZE], _infile[MAXFILESIZE], _errors[MAXERRORBUF];
 
+inline void
+die(const char *msg) {
+  fprintf(stderr, "%s\n", msg);
+  abort();
+}
+
 Span buildFileName(Byte* buffer, int len, char* path, char* dir, char* ext) {
   
     Buffer btmp = BufferInit(buffer, len);

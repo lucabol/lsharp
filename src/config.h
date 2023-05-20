@@ -26,9 +26,10 @@ typedef struct {
   X(WithLine) \
   X(Using) \
   X(FuncDef) \
-  X(QualFuncCall) \
   X(GlobalDecl) \
-  X(Decl)
+  X(Assign) \
+  X(DeclSimple) \
+  X(DeclAssign)
 
 #define X(n) n,
 typedef enum {
@@ -48,6 +49,8 @@ typedef enum {
   SymCUsing,
   SymQuotedUsing,
   SymLocalFunc,
+  SymLocalVar,
+  SymGlobalVar,
 } SymType;
 
 typedef struct {
@@ -114,4 +117,6 @@ static inline void
 PushError(Buffer* e, char* filename, int firstline, int firstcolumn, char* msg) {
   BufferSLCopy(0, e, filename, " error: ", itoa(firstline), ":", itoa(firstline), " ", msg);
 }
+
+void die(const char *msg);
 #endif

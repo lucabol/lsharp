@@ -22,12 +22,6 @@ AstInit() {
   NextId    = 0;
 }
 
-inline void
-die(const char *msg) {
-  fprintf(stderr, "%s\n", msg);
-  abort();
-}
-
 inline int
 CreateNTA(Kind kind, int children[]) {
   if(NextId >= MAXNODES - 1)
@@ -103,7 +97,6 @@ int   CreateNTA(Kind kind, int children[]);
 int   CreateToken(Kind kind, char* ptr, int len, int line, int column);
 Span  ChildValue(int node, int num);
 int   Child(int node, int num);
-void  die(const char *msg);
 void AstInit();
 
 #endif

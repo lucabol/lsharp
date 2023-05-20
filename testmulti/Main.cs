@@ -8,5 +8,5 @@ nint Two() {
 int main() {
   nint n = Lib.ni;
   nint k = Lib.Ni();
-  return Lib.Pow(n) - Util.PowDouble(Lib.Ni());
+  return Lib.Pow(n) - Util.PowDouble(Lib.Ni()) + k - 217;
 }

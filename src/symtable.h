@@ -30,7 +30,7 @@ SymInit() {
   NextLIndex = 0;
 }
 
-inline char*
+inline const char*
 SymLAdd(Span s, SymType t) {
   if(NextLIndex > MAXLOCALSYMBOLS) {
     return "Too many local symbols.";
@@ -54,11 +54,12 @@ SymLFind(Span sym) {
 inline void PushScope() { ScopeStack[ScopeIndex++] = NextLIndex;}
 inline void PopScope()  { ScopeIndex--;}
 
-inline char*
+inline void
 SymGAdd(Span sym, SymType t) {
   assert(SpanValid(sym));
 
-  if(MAXLEN < SymGLength) return "Global symbol table too small to contain all symbols in the program."; // OOM
+  if(MAXLEN < SymGLength)
+    die("Global symbol table too small to contain all symbols in the program."); // OOM
 
   uint64_t h = HashString(sym.ptr, (int32_t)sym.len);
   for(int32_t i = (int32_t)h;;) {
@@ -71,13 +72,13 @@ SymGAdd(Span sym, SymType t) {
       SymGLen[i] = sym.len;
       SymGType[i] = t;
       SymGLength++;
-      return 0;
+      return;
     }
 
     Span e = SPAN(ptr, SymGLen[i]);
 
     if(SpanEqual(sym, e) && SymGType[i] == t) {
-      return "Global redefinition of symbol.";
+      die("Global redefinition of symbol.");
     }
   }
 }
@@ -118,9 +119,9 @@ int   NextLIndex;
 int   ScopeStack[MAXSCOPES];
 int   ScopeIndex;
 
-char* SymLAdd(Span s, SymType t);
+const char* SymLAdd(Span s, SymType t);
 int   SymLFind(Span sym);
-char* SymGAdd(Span s, SymType t);
+void  SymGAdd(Span s, SymType t);
 int   SymGFind(Span sym);
 void  SymInit();
 

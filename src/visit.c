@@ -29,6 +29,11 @@ void ResetState(Context* ctx) {
     ctx->toHeader    = false;
 }
 
+inline static bool
+IsLocalFunc(Span sp, SymType t) {
+  return (t == SymLocalFunc) && (!SpanEqual(sp, S("main")));
+}
+
 void VisitToken(int node, Context* ctx) {
 
   Span sp = GetSpan(node);
@@ -38,10 +43,15 @@ void VisitToken(int node, Context* ctx) {
   int symbol = SymGFind(sp);
   Span pre = S("");
 
-  // Local functions need to be prepended by the namespace
-  if(symbol != -1 && SymGType[symbol] == SymLocalFunc && !SpanEqual(sp, S("main"))) {
-    pre = ctx->name_space;
-    spacing = 0;
+  SymType stype = SymGType[symbol];
+
+  // Local functions and global variables need to be prepended by the namespace
+  if(symbol != -1 &&
+     ((IsLocalFunc(sp, stype)) ||
+      (stype == SymGlobalVar))) {
+
+      pre = ctx->name_space;
+      spacing = 0;
   };
 
   BufferMCopy(spacing, ctx->c, pre, sp);
@@ -111,29 +121,23 @@ void VisitUsing(int node, Context* ctx) {
   }
 }
 
-void VisitQualFunc(int node, Context* ctx) {
+void VisitQualIdentifier(int node, Context* ctx) {
   Span namespace = ChildValue(node,1);
 
   int nsNode = SymGFind(namespace);
   if(nsNode == -1) {
-    ERR(node, "Qualified function call without a corresponding using statement.");
+    ERR(node, "Qualified symbol without a corresponding using statement.");
     return;
   }
   switch(SymGType[nsNode]) {
     case SymUsing:
       BufferMCopy(0, ctx->c, namespace, ChildValue(node,3));
-      visit(Child(node,4), ctx);
-      visit(Child(node,5), ctx);
-      visit(Child(node,6), ctx);
       break;
     case SymCUsing:
       visit(Child(node,3), ctx);
-      visit(Child(node,4), ctx);
-      visit(Child(node,5), ctx);
-      visit(Child(node,6), ctx);
       break;
     default:
-      die("Qualified function call with a using statement of an unknown kind");
+      die("Qualified symbol with a using statement of an unknown kind");
   }
 }
 
@@ -166,13 +170,16 @@ void ExtractType(int node, Context* ctx) {
 }
 
 void EmitExternDecl(Span varName, Context* ctx) {
-  BufferMLCopy(' ', ctx->h, S("extern"), ctx->typeName, varName, ctx->isSliceType ? S("[]") : S(""), S(";"));
+  BufferMLCopy(0, ctx->h, S("extern "), ctx->typeName, S(" "),
+               ctx->name_space, varName,
+               ctx->isSliceType ? S("[]") : S(""), S(";"));
 }
 
-void VisitDecl(int node, Context* ctx) {
+void VisitDeclSimple(int node, Context* ctx) {
+
+  ExtractType(Child(node, 1), ctx);
 
   if(ctx->globalDecl) {
-    ExtractType(Child(node, 1), ctx);
     int maybeToken = Child(node, 2);
     if(NodeKind[maybeToken] == Token) {
       EmitExternDecl(GetSpan(maybeToken), ctx);
@@ -185,9 +192,30 @@ void VisitDecl(int node, Context* ctx) {
     }
   }
 
+  Span varName = ChildValue(node, 2);
+  SymGAdd(varName, SymGlobalVar);
+
   VisitChildren(node, ctx);
 }
 
+void VisitDeclAssign(int node, Context* ctx) {
+
+  ExtractType(Child(node, 1), ctx);
+
+  VisitChildren(node, ctx);
+}
+
+void VisitAssign(int node, Context* ctx) {
+
+  if(ctx->globalDecl) {
+    Span varName = ChildValue(node, 1);
+    SymGAdd(varName, SymGlobalVar);
+
+    EmitExternDecl(varName, ctx);
+  }
+
+  VisitChildren(node, ctx);
+}
 
 void trace(int node, Context* ctx) {
   Span s = GetSpan(node);
@@ -197,9 +225,10 @@ void trace(int node, Context* ctx) {
   if(ctx->typeName.ptr != 0) OsPrintSpan(ctx->typeName);
   printf("%s\n", "");
 }
+
 void visit(int node, Context* ctx) {
   //int line = 0;
-  //trace(node,ctx);
+  // trace(node,ctx);
 
   switch(NodeKind[node]) {
     case Token:
@@ -228,14 +257,16 @@ void visit(int node, Context* ctx) {
       VisitChildren(node, ctx);
       ctx->globalDecl = false;
       break;
-    case QualFuncCall: // Prepend the correct qualifier to a function call
-      VisitQualFunc(node, ctx);
+    case DeclSimple: // Emit extern declarations in header file
+      VisitDeclSimple(node, ctx);
       break;
-    case Decl: // Emit extern declarations in header file
-      VisitDecl(node, ctx);
-      //VisitChildren(node, ctx);
+    case DeclAssign: // Emit extern declarations in header file
+      VisitDeclAssign(node, ctx);
+      break;
+    case Assign: // Assignment after declaration 
+      VisitAssign(node, ctx);
       break;
     case QualIdentifier:
-      die("Qualified identifiers shouldn't be in this position.");
+      VisitQualIdentifier(node, ctx);
     }
 }

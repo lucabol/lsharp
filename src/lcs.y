@@ -23,7 +23,7 @@
 %glr-parser
 %expect 38
 
-%token NAMESPACE "namespace" USING "using" IDENTIFIER "identifier" QUALIDENTIFIER "qualified identifier" CONSTANT "constant" STRING_LITERAL "string literal" SIZEOF "sizeof"
+%token NAMESPACE "namespace" USING "using" IDENTIFIER "identifier" CONSTANT "constant" STRING_LITERAL "string literal" SIZEOF "sizeof"
 %token INC_OP "++" DEC_OP "--" LEFT_OP "<<" RIGHT_OP ">>" LE_OP "<=" GE_OP ">=" EQ_OP "==" NE_OP "!="
 %token AND_OP "&&" OR_OP "||" MUL_ASSIGN "*=" DIV_ASSIGN "/=" MOD_ASSIGN "%=" ADD_ASSIGN "+="
 %token SUB_ASSIGN "-=" LEFT_ASSIGN "<<=" RIGHT_ASSIGN ">>=" AND_ASSIGN "&="
@@ -122,14 +122,14 @@ decl
   ;
 
 valuedecl
-  : valuetype IDENTIFIER ';' { NTT(Decl,$$,$1,$2,$3) }
-  | valuetype assign assign_list ';' { NTT(Decl,$$,$1,$2,$3,$4) }
+  : valuetype IDENTIFIER ';' { NTT(DeclSimple,$$,$1,$2,$3) }
+  | valuetype assign assign_list ';' { NTT(DeclAssign,$$,$1,$2,$3,$4) }
   ;
 
 slicedecl
-  : slicetype IDENTIFIER ';' { NTT(Decl,$$,$1,$2,$3) }
-  | valuetype IDENTIFIER '[' expr ']' ';' { NTT(Decl,$$,$1,$2,$3,$4,$5,$6) }
-  | slicetype sliceassign sliceassign_list ';' { NTT(Decl,$$,$1,$2,$3,$4) }
+  : slicetype IDENTIFIER ';' { NTT(DeclSimple,$$,$1,$2,$3) }
+  | valuetype IDENTIFIER '[' expr ']' ';' { NTT(DeclSimple,$$,$1,$2,$3,$4,$5,$6) }
+  | slicetype sliceassign sliceassign_list ';' { NTT(DeclAssign,$$,$1,$2,$3,$4) }
   ;
 
 sliceassign_list
@@ -148,7 +148,7 @@ assign_list
   | assign_list ',' assign { NT($$,$1,$2,$3) }
 
 assign
-  : IDENTIFIER '=' expr { NT($$,$1,$2,$3) }
+  : IDENTIFIER '=' expr { NTT(Assign,$$,$1,$2,$3) }
   ;
 
 func
@@ -157,7 +157,7 @@ func
 
 funccall
   : IDENTIFIER '(' expr_list ')' { NT($$,$1,$2,$3,$4) }
-  | IDENTIFIER '.' IDENTIFIER '(' expr_list ')' { NTT(QualFuncCall,$$,$1,$2,$3,$4,$5,$6) }
+  | qualidentifier '(' expr_list ')' { NT($$,$1,$2,$3,$4) }
   ;
 
 param_list
@@ -195,12 +195,17 @@ stmt
   | IF '(' expr ')' block ELSE block { NTT(WithLine,$$,$1,$2,$3,$4,$5,$6,$7) }
   ;
 
+qualidentifier
+  : IDENTIFIER '.' IDENTIFIER { NTT(QualIdentifier,$$,$1,$2,$3) }
+  ;
+
 expr
   : CONSTANT
   | STRING_LITERAL
   | IDENTIFIER
   | assign
   | funccall
+  | qualidentifier
   | '(' type ')' expr   %dprec 8 { NT($$,$1,$2,$3,$4) }
   | '(' expr ')'   %dprec 1 { NT($$,$1,$2,$3) }
   | expr '+' expr  %dprec 1 { NT($$,$1,$2,$3) }
@@ -229,19 +234,11 @@ expr
 %%
 
 void AddGSym(yyscan_t scanner,int i, SymType t) {
-  GETLOC;
   Span s = SPAN((Byte*)NodeName[i], NodeLen[i]);
-  char* error = SymGAdd(s, t);
-  if(error) {
-    yyerror(loc, scanner, error);
-  }
+  SymGAdd(s, t);
 }
 void AddGSymQuoted(yyscan_t scanner,int i, SymType t) {
-  GETLOC;
   Span sq = SPAN((Byte*)NodeName[i], NodeLen[i]);
   Span s  = SPAN(sq.ptr + 1, sq.len - 2);
-  char* error = SymGAdd(s, t);
-  if(error) {
-    yyerror(loc, scanner, error);
-  }
+  SymGAdd(s, t);
 }

@@ -58,53 +58,52 @@ extern int yydebug;
     NAMESPACE = 258,               /* "namespace"  */
     USING = 259,                   /* "using"  */
     IDENTIFIER = 260,              /* "identifier"  */
-    QUALIDENTIFIER = 261,          /* "qualified identifier"  */
-    CONSTANT = 262,                /* "constant"  */
-    STRING_LITERAL = 263,          /* "string literal"  */
-    SIZEOF = 264,                  /* "sizeof"  */
-    INC_OP = 265,                  /* "++"  */
-    DEC_OP = 266,                  /* "--"  */
-    LEFT_OP = 267,                 /* "<<"  */
-    RIGHT_OP = 268,                /* ">>"  */
-    LE_OP = 269,                   /* "<="  */
-    GE_OP = 270,                   /* ">="  */
-    EQ_OP = 271,                   /* "=="  */
-    NE_OP = 272,                   /* "!="  */
-    AND_OP = 273,                  /* "&&"  */
-    OR_OP = 274,                   /* "||"  */
-    MUL_ASSIGN = 275,              /* "*="  */
-    DIV_ASSIGN = 276,              /* "/="  */
-    MOD_ASSIGN = 277,              /* "%="  */
-    ADD_ASSIGN = 278,              /* "+="  */
-    SUB_ASSIGN = 279,              /* "-="  */
-    LEFT_ASSIGN = 280,             /* "<<="  */
-    RIGHT_ASSIGN = 281,            /* ">>="  */
-    AND_ASSIGN = 282,              /* "&="  */
-    XOR_ASSIGN = 283,              /* "^="  */
-    OR_ASSIGN = 284,               /* "|="  */
-    TYPE_NAME = 285,               /* "type name"  */
-    ENUM = 286,                    /* "enum"  */
-    CASE = 287,                    /* "case"  */
-    DEFAULT = 288,                 /* "default"  */
-    IF = 289,                      /* "if"  */
-    ELSE = 290,                    /* "else"  */
-    SWITCH = 291,                  /* "switch"  */
-    WHILE = 292,                   /* "while"  */
-    DO = 293,                      /* "do"  */
-    FOR = 294,                     /* "for"  */
-    GOTO = 295,                    /* "goto"  */
-    CONTINUE = 296,                /* "continue"  */
-    BREAK = 297,                   /* "break"  */
-    RETURN = 298,                  /* "return"  */
-    SLICESYM = 299,                /* "[]"  */
-    NEW = 300,                     /* "new"  */
-    PTYPE = 301,                   /* "primitive type"  */
-    CAST = 307,                    /* CAST  */
-    NEG = 310,                     /* NEG  */
-    PREINCR = 311,                 /* PREINCR  */
-    PREDECR = 312,                 /* PREDECR  */
-    POSTINCR = 318,                /* POSTINCR  */
-    POSTDECR = 319                 /* POSTDECR  */
+    CONSTANT = 261,                /* "constant"  */
+    STRING_LITERAL = 262,          /* "string literal"  */
+    SIZEOF = 263,                  /* "sizeof"  */
+    INC_OP = 264,                  /* "++"  */
+    DEC_OP = 265,                  /* "--"  */
+    LEFT_OP = 266,                 /* "<<"  */
+    RIGHT_OP = 267,                /* ">>"  */
+    LE_OP = 268,                   /* "<="  */
+    GE_OP = 269,                   /* ">="  */
+    EQ_OP = 270,                   /* "=="  */
+    NE_OP = 271,                   /* "!="  */
+    AND_OP = 272,                  /* "&&"  */
+    OR_OP = 273,                   /* "||"  */
+    MUL_ASSIGN = 274,              /* "*="  */
+    DIV_ASSIGN = 275,              /* "/="  */
+    MOD_ASSIGN = 276,              /* "%="  */
+    ADD_ASSIGN = 277,              /* "+="  */
+    SUB_ASSIGN = 278,              /* "-="  */
+    LEFT_ASSIGN = 279,             /* "<<="  */
+    RIGHT_ASSIGN = 280,            /* ">>="  */
+    AND_ASSIGN = 281,              /* "&="  */
+    XOR_ASSIGN = 282,              /* "^="  */
+    OR_ASSIGN = 283,               /* "|="  */
+    TYPE_NAME = 284,               /* "type name"  */
+    ENUM = 285,                    /* "enum"  */
+    CASE = 286,                    /* "case"  */
+    DEFAULT = 287,                 /* "default"  */
+    IF = 288,                      /* "if"  */
+    ELSE = 289,                    /* "else"  */
+    SWITCH = 290,                  /* "switch"  */
+    WHILE = 291,                   /* "while"  */
+    DO = 292,                      /* "do"  */
+    FOR = 293,                     /* "for"  */
+    GOTO = 294,                    /* "goto"  */
+    CONTINUE = 295,                /* "continue"  */
+    BREAK = 296,                   /* "break"  */
+    RETURN = 297,                  /* "return"  */
+    SLICESYM = 298,                /* "[]"  */
+    NEW = 299,                     /* "new"  */
+    PTYPE = 300,                   /* "primitive type"  */
+    CAST = 306,                    /* CAST  */
+    NEG = 309,                     /* NEG  */
+    PREINCR = 310,                 /* PREINCR  */
+    PREDECR = 311,                 /* PREDECR  */
+    POSTINCR = 317,                /* POSTINCR  */
+    POSTDECR = 318                 /* POSTDECR  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
