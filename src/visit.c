@@ -55,17 +55,23 @@ Span ttypes[] = { S("bool"),S("byte"),S("sbyte"),S("char"),S("double"),S("float"
 Span stypes[] = { S("bool"),S("int8_t"),S("sbyte"),S("char"),S("double"),S("float"),
   S("int32_t"),S("uint32_t"),S("int"),S("unsigned int"),S("int64_t"),S("uint64_t"),S("int16_t"),S("uint16_t")};
 
+Span TypeConvert(Span sp) {
+  for(size_t i = 0; i < sizeof(ttypes) / sizeof(ttypes[0]); i++) {
+    Span nt = ttypes[i];
+    if(SpanEqual(nt, sp)) {
+      return stypes[i];
+    }
+  }
+  return sp;
+}
+
 void PrintPrimitiveType(int node, Context* ctx) {
   Span sp = GetSpan(node);
-  for(size_t i = 0; i < sizeof(ttypes) / sizeof(ttypes[0]); i++) {
-    if(SpanEqual(ttypes[i], sp)) {
-      Span newType = stypes[i];
-      BufferMCopy(' ', ctx->c, newType);
-      if(ctx->toHeader) {
-        BufferMCopy(' ', ctx->h, newType);
-      }
-      break;
-    }
+  Span nt = TypeConvert(sp);
+
+  BufferMCopy(' ', ctx->c, nt);
+  if(ctx->toHeader) {
+    BufferMCopy(' ', ctx->h, nt);
   }
 }
 
@@ -148,13 +154,13 @@ void ExtractType(int node, Context* ctx) {
   Kind nk = NodeKind[maybeValueType];
 
   if(nk == Token || nk == PrimitiveType) {
-    ctx->typeName = GetSpan(maybeValueType);
+    ctx->typeName = TypeConvert(GetSpan(maybeValueType));
   } else {
     int sliceType = Child(maybeValueType, 1);
     if(NodeKind[sliceType] != Token) {
       die("The first node of a slice type is not a token??");
     }
-    ctx->typeName    = GetSpan(sliceType);
+    ctx->typeName    = TypeConvert(GetSpan(sliceType));
     ctx->isSliceType = true;
   }
 }
@@ -206,8 +212,8 @@ void visit(int node, Context* ctx) {
       PrintPrimitiveType(node, ctx);
       break;
     case WithLine: // Insert file and line numbers (or just newlines)
-      //line = NodeLine[node];
-      //BufferSLCopy(0, ctx->c, "\n", "#line ", itoa(line), " \"", ctx->filename, "\"");
+      // line = NodeLine[node] - 1;
+      // BufferSLCopy(0, ctx->c, "\n", "#line ", itoa(line), " \"", ctx->filename, "\"");
       BufferSLCopy(0, ctx->c, "");
       VisitChildren(node, ctx);
       break;

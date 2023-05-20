@@ -50,8 +50,17 @@ void printBuffer(char* tempDirValue, Span targetFile, Buffer* b) {
 void cpreamble(Buffer* b, Span inclName) {
   BufferSLCopy(0,b, "#include \"", (char*)SpanTo1KTempString(inclName), "\"");
 }
-void hpreamble(Buffer* b) {
+void hpreamble(Buffer* b, Span inclName) {
+  Span filename = SpanExtractFileName('/', inclName);
+  Span up = Span1KToUpper(filename);
+
+  BufferMLCopy(0, b, S("#ifndef "), up, S("_H"));
+  BufferMLCopy(0, b, S("#define "), up, S("_H"), S("\n"));
+
   BufferSLCopy(0,b, "#include <stdint.h>\n#include <stdbool.h>");
+}
+void hpostamble(Buffer* b) {
+  BufferSLCopy(0,b, "\n#endif");
 }
 
 int themain(int argc, char* argv[]) {
@@ -146,7 +155,7 @@ int themain(int argc, char* argv[]) {
 
     Context ctx = { .c = &c, .h = &h, .e = &e, .filename = filename, .name_space = nsp };
 
-    hpreamble(&h);
+    hpreamble(&h, hname);
     cpreamble(&c, hname);
 
     visit(env.startNode, &ctx);
@@ -155,8 +164,11 @@ int themain(int argc, char* argv[]) {
       return 1;
     }
 
+    hpostamble(&h);
+
     printBuffer(tempDirValue, hname, &h);
     printBuffer(tempDirValue, cname, &c);
+
     
     if(tempDirValue) {
       BufferMCopy(' ', &cmd, cname);
