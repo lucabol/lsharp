@@ -4,9 +4,9 @@ int f(int k[]) {
   return k[0];
 }
 
-int s1[50];
 
 int main() {
+  int s1[50], kk[] = { 0 };
   s1[0] = 5;
   s1[a] = 5;
   int a = 1;
@@ -17,5 +17,5 @@ int main() {
   for(i = 0; i < 3; i++) {
     sum += t[i];
   }
-  return s1[a] - f(s1) + sum - 6;
+  return s1[a] - f(s1) + sum - 6 + kk[0];
 }

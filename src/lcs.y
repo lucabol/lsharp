@@ -105,12 +105,6 @@ type
   | slicetype
   ;
 
-valuetype
-  : PTYPE { $$ = CreateToken(PrimitiveType, NodeName[$1] , NodeLen[$1], yylloc.first_line, yylloc.first_column); }
-  | TYPE_NAME
-  | PTYPE '*' { GETLOC; yyerror(loc, scanner, POINTERS);}
-  ;
-
 slicetype
   : valuetype '[' ']' { NT($$,$1,$2,$3) }
   ;
@@ -120,15 +114,31 @@ decl
   | slicedecl
   ;
 
+slicedecl
+  : valuetype IDENTIFIER '[' ']' ';' { NTT(DeclSimple,$$,$1,$2,$3,$4,$5) }
+  | valuetype sliceassign sliceassign_list ';'  { NTT(DeclAssign,$$,$1,$2,$3,$4) }
+  ;
+
+sliceassign_list
+  : %empty {EMPTY($$) } 
+  | sliceassign_list ',' sliceassign { NT($$,$1,$2,$3) }
+  ;
+
+sliceassign
+  :  IDENTIFIER '[' expr ']' '=' '{' expr_list '}' { NTT(DeclSimple,$$,$1,$2,$3,$4,$5,$6,$7,$8) }
+  |  IDENTIFIER '[' expr ']'                       { NTT(DeclSimple,$$,$1,$2,$3,$4) }
+  |  IDENTIFIER '[' ']' '=' '{' expr_list '}'      { NTT(DeclSimple,$$,$1,$2,$3,$4,$5,$6,$7) }
+  ;
+
+valuetype
+  : PTYPE { $$ = CreateToken(PrimitiveType, NodeName[$1] , NodeLen[$1], yylloc.first_line, yylloc.first_column); }
+  | TYPE_NAME
+  | PTYPE '*' { GETLOC; yyerror(loc, scanner, POINTERS);}
+  ;
+
 valuedecl
   : valuetype IDENTIFIER ';' { NTT(DeclSimple,$$,$1,$2,$3) }
   | valuetype assign assign_list ';' { NTT(DeclAssign,$$,$1,$2,$3,$4) }
-  ;
-
-slicedecl
-  : valuetype IDENTIFIER '[' expr ']' ';' { NTT(DeclSimple,$$,$1,$2,$3,$4,$5,$6) }
-  | valuetype IDENTIFIER '[' expr ']' '=' '{' expr_list '}' ';' { NTT(DeclSimple,$$,$1,$2,$3,$4,$5,$6,$7) }
-  | valuetype IDENTIFIER '[' ']' '=' '{' expr_list '}' ';' { NTT(DeclSimple,$$,$1,$2,$3,$4,$5,$6,$7,$8,$9) }
   ;
 
 assign_list
