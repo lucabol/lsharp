@@ -4,11 +4,11 @@ int f(int k[]) {
   return k[0];
 }
 
+int s1[50], kk[] = { 0 };
 
 int main() {
-  int s1[50], kk[] = { 0 };
   s1[0] = 5;
-  s1[a] = 5;
+  s1[a - 0] = 5;
   int a = 1;
 
   int t[] = {1,2,3};

@@ -30,7 +30,9 @@ typedef struct {
   X(GlobalDecl) \
   X(Assign) \
   X(DeclSimple) \
-  X(DeclAssign)
+  X(DeclAssign) \
+  X(SliceAssign) \
+  X(DeclSliceSimple) \
 
 #define X(n) n,
 typedef enum {
@@ -53,6 +55,8 @@ typedef enum {
   SymLocalFunc,
   SymLocalVar,
   SymGlobalVar,
+  SymLocalSliceVar,
+  SymGlobalSliceVar,
 } SymType;
 
 typedef struct {
@@ -65,7 +69,6 @@ typedef struct {
 
   bool toHeader;
   bool globalDecl;
-  bool isSliceType;
   Span typeName;
 } Context;
 

@@ -25,7 +25,6 @@ Span GetSpan(int node) {
 void ResetState(Context* ctx) {
     ctx->typeName    = SPAN0;
     ctx->globalDecl  = false;
-    ctx->isSliceType = false;
     ctx->toHeader    = false;
 }
 
@@ -39,7 +38,8 @@ IsLocalFunc(Span sp) {
 
 inline static bool
 IsGlobalVar(Span sp) {
-  return SymTypeFind(sp) == SymGlobalVar;
+  SymType t = SymTypeFind(sp);
+  return t == SymGlobalVar || t == SymGlobalSliceVar;
 }
 
 void VisitToken(int node, Context* ctx) {
@@ -163,19 +163,45 @@ void ExtractType(int node, Context* ctx) {
   if(nk == PrimitiveType) {
     ctx->typeName = TypeConvert(GetSpan(node));
   } else {
-    int sliceType = Child(node, 1);
-    if(NodeKind[sliceType] != Token) {
-      die("The first node of a slice type is not a token??");
-    }
-    ctx->typeName    = TypeConvert(GetSpan(sliceType));
-    ctx->isSliceType = true;
+    ExtractType(Child(node,1), ctx);
   }
 }
 
-void EmitExternDecl(Span varName, Context* ctx) {
-  BufferMLCopy(0, ctx->h, S("extern "), ctx->typeName, S(" "),
-               ctx->name_space, varName,
-               ctx->isSliceType ? S("[]") : S(""), S(";"));
+void EmitHeader(Span varName, Context* ctx, bool isSliceType) {
+  if(ctx->globalDecl) {
+    BufferMLCopy(0, ctx->h, S("extern "), ctx->typeName, S(" "),
+                 ctx->name_space, varName,
+                 isSliceType ? S("[]") : S(""), S(";"));
+    }
+}
+
+void AddToST(Span varName, Context* ctx, bool isSliceType) {
+  if(ctx->globalDecl) {
+    SymGAdd(varName, isSliceType ? SymGlobalSliceVar : SymGlobalVar);
+  } else {
+    SymLAdd(varName, isSliceType ? SymLocalSliceVar : SymLocalVar);
+  }
+}
+
+void VisitDeclSliceSimple(int node, Context* ctx) {
+
+  ExtractType(Child(node, 1), ctx);
+  Span varName = ChildValue(node, 2);
+
+  AddToST(varName, ctx, true);
+  EmitHeader(varName, ctx, true);
+
+  VisitChildren(node, ctx);
+}
+
+void VisitSliceAssign(int node, Context* ctx) {
+
+  Span varName = ChildValue(node, 1);
+
+  AddToST(varName, ctx, true);
+  EmitHeader(varName, ctx, true);
+  
+  VisitChildren(node, ctx);
 }
 
 void VisitDeclSimple(int node, Context* ctx) {
@@ -183,43 +209,26 @@ void VisitDeclSimple(int node, Context* ctx) {
   ExtractType(Child(node, 1), ctx);
   Span varName = ChildValue(node, 2);
 
-  if(ctx->globalDecl) {
-    int maybeToken = Child(node, 2);
-    if(NodeKind[maybeToken] == Token) {
-      EmitExternDecl(GetSpan(maybeToken), ctx);
-    } else {
-      int sliceToken = Child(maybeToken, 1);
-      if(NodeKind[sliceToken] != Token) {
-        die("The first node of a slice assignment node is not a token??");
-      }
-      EmitExternDecl(GetSpan(sliceToken), ctx);
-    }
-    SymGAdd(varName, SymGlobalVar);
-  } else {
-    SymLAdd(varName, SymLocalVar);
-  }
+  AddToST(varName, ctx, false);
+  EmitHeader(varName, ctx, false);
 
+  VisitChildren(node, ctx);
+}
+
+
+void VisitAssign(int node, Context* ctx) {
+
+  Span varName = ChildValue(node, 1);
+
+  AddToST(varName, ctx, false);
+  EmitHeader(varName, ctx, false);
+  
   VisitChildren(node, ctx);
 }
 
 void VisitDeclAssign(int node, Context* ctx) {
 
   ExtractType(Child(node, 1), ctx);
-
-  VisitChildren(node, ctx);
-}
-
-void VisitAssign(int node, Context* ctx) {
-
-  Span varName = ChildValue(node, 1);
-
-  if(ctx->globalDecl) {
-    EmitExternDecl(varName, ctx);
-    SymGAdd(varName, SymGlobalVar);
-  } else {
-    SymLAdd(varName, SymLocalVar);
-  }
-
 
   VisitChildren(node, ctx);
 }
@@ -262,16 +271,22 @@ void visit(int node, Context* ctx) {
     case GlobalDecl: // Set a flag to remember the last type name while walking the ast
       ctx->globalDecl = true;
       VisitChildren(node, ctx);
-      ctx->globalDecl = false;
+      ResetState(ctx);
       break;
     case DeclSimple: // Emit extern declarations in header file
       VisitDeclSimple(node, ctx);
+      break;
+    case DeclSliceSimple: // Emit extern declarations in header file
+      VisitDeclSliceSimple(node, ctx);
       break;
     case DeclAssign: // Emit extern declarations in header file
       VisitDeclAssign(node, ctx);
       break;
     case Assign: // Assignment after declaration 
       VisitAssign(node, ctx);
+      break;
+    case SliceAssign: // Assignment after declaration 
+      VisitSliceAssign(node, ctx);
       break;
     case QualIdentifier:
       VisitQualIdentifier(node, ctx);

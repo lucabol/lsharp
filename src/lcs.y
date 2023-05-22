@@ -115,8 +115,7 @@ decl
   ;
 
 slicedecl
-  : valuetype IDENTIFIER '[' ']' ';' { NTT(DeclSimple,$$,$1,$2,$3,$4,$5) }
-  | valuetype sliceassign sliceassign_list ';'  { NTT(DeclAssign,$$,$1,$2,$3,$4) }
+  : valuetype sliceassign sliceassign_list ';'  { NTT(DeclAssign,$$,$1,$2,$3,$4) }
   ;
 
 sliceassign_list
@@ -125,9 +124,10 @@ sliceassign_list
   ;
 
 sliceassign
-  :  IDENTIFIER '[' expr ']' '=' '{' expr_list '}' { NTT(DeclSimple,$$,$1,$2,$3,$4,$5,$6,$7,$8) }
-  |  IDENTIFIER '[' expr ']'                       { NTT(DeclSimple,$$,$1,$2,$3,$4) }
-  |  IDENTIFIER '[' ']' '=' '{' expr_list '}'      { NTT(DeclSimple,$$,$1,$2,$3,$4,$5,$6,$7) }
+  : IDENTIFIER '[' ']'                            { NTT(SliceAssign,$$,$1,$2,$3) }
+  | IDENTIFIER '[' expr ']'                       { NTT(SliceAssign,$$,$1,$2,$3,$4) }
+  | IDENTIFIER '[' expr ']' '=' '{' expr_list '}' { NTT(SliceAssign,$$,$1,$2,$3,$4,$5,$6,$7,$8) }
+  | IDENTIFIER '[' ']' '=' '{' expr_list '}'      { NTT(SliceAssign,$$,$1,$2,$3,$4,$5,$6,$7) }
   ;
 
 valuetype
@@ -137,8 +137,7 @@ valuetype
   ;
 
 valuedecl
-  : valuetype IDENTIFIER ';' { NTT(DeclSimple,$$,$1,$2,$3) }
-  | valuetype assign assign_list ';' { NTT(DeclAssign,$$,$1,$2,$3,$4) }
+  : valuetype assign assign_list ';' { NTT(DeclAssign,$$,$1,$2,$3,$4) }
   ;
 
 assign_list
@@ -146,7 +145,8 @@ assign_list
   | assign_list ',' assign { NT($$,$1,$2,$3) }
 
 assign
-  : IDENTIFIER '=' expr { NTT(Assign,$$,$1,$2,$3) }
+  : IDENTIFIER          { NTT(Assign,$$,$1) }
+  | IDENTIFIER '=' expr { NTT(Assign,$$,$1,$2,$3) }
   ;
 
 func
@@ -233,6 +233,7 @@ expr
   | expr '/' expr          %dprec 12 { NT($$,$1,$2,$3) }
   | '(' type ')' expr      %dprec 13 { NT($$,$1,$2,$3,$4) }
   | IDENTIFIER '[' expr ']' %dprec 13 { NT($$,$1,$2,$3,$4) }
+  | qualidentifier '[' expr ']' %dprec 13 { NT($$,$1,$2,$3,$4) }
   | '-' expr %prec NEG     %dprec 13 { NT($$,$1,$2) }
   | '+' expr %prec NEG     %dprec 13 { NT($$,$1,$2) }
   | '!' expr %prec '!'     %dprec 13 { NT($$,$1,$2) }
