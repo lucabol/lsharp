@@ -30,8 +30,16 @@ void ResetState(Context* ctx) {
 }
 
 inline static bool
-IsLocalFunc(Span sp, SymType t) {
-  return (t == SymLocalFunc) && (!SpanEqual(sp, S("main")));
+IsLocalFunc(Span sp) {
+  int symbol = SymGFind(sp);
+  SymType stype = SymGType[symbol];
+
+  return (stype == SymLocalFunc) && (!SpanEqual(sp, S("main"))) && (!SpanEqual(sp, S("Main")));
+}
+
+inline static bool
+IsGlobalVar(Span sp) {
+  return SymTypeFind(sp) == SymGlobalVar;
 }
 
 void VisitToken(int node, Context* ctx) {
@@ -40,15 +48,11 @@ void VisitToken(int node, Context* ctx) {
 
   char spacing = ispunct(sp.ptr[0]) ? 0 : ' '; 
 
-  int symbol = SymGFind(sp);
   Span pre = S("");
 
-  SymType stype = SymGType[symbol];
 
   // Local functions and global variables need to be prepended by the namespace
-  if(symbol != -1 &&
-     ((IsLocalFunc(sp, stype)) ||
-      (stype == SymGlobalVar))) {
+  if(IsLocalFunc(sp) || IsGlobalVar(sp)) {
 
       pre = ctx->name_space;
       spacing = 0;
@@ -154,13 +158,12 @@ void VisitFuncDef(int node, Context* ctx) {
 }
 
 void ExtractType(int node, Context* ctx) {
-  int maybeValueType = node;
-  Kind nk = NodeKind[maybeValueType];
+  Kind nk = NodeKind[node];
 
-  if(nk == Token || nk == PrimitiveType) {
-    ctx->typeName = TypeConvert(GetSpan(maybeValueType));
+  if(nk == PrimitiveType) {
+    ctx->typeName = TypeConvert(GetSpan(node));
   } else {
-    int sliceType = Child(maybeValueType, 1);
+    int sliceType = Child(node, 1);
     if(NodeKind[sliceType] != Token) {
       die("The first node of a slice type is not a token??");
     }
@@ -178,6 +181,7 @@ void EmitExternDecl(Span varName, Context* ctx) {
 void VisitDeclSimple(int node, Context* ctx) {
 
   ExtractType(Child(node, 1), ctx);
+  Span varName = ChildValue(node, 2);
 
   if(ctx->globalDecl) {
     int maybeToken = Child(node, 2);
@@ -190,10 +194,10 @@ void VisitDeclSimple(int node, Context* ctx) {
       }
       EmitExternDecl(GetSpan(sliceToken), ctx);
     }
+    SymGAdd(varName, SymGlobalVar);
+  } else {
+    SymLAdd(varName, SymLocalVar);
   }
-
-  Span varName = ChildValue(node, 2);
-  SymGAdd(varName, SymGlobalVar);
 
   VisitChildren(node, ctx);
 }
@@ -207,12 +211,15 @@ void VisitDeclAssign(int node, Context* ctx) {
 
 void VisitAssign(int node, Context* ctx) {
 
-  if(ctx->globalDecl) {
-    Span varName = ChildValue(node, 1);
-    SymGAdd(varName, SymGlobalVar);
+  Span varName = ChildValue(node, 1);
 
+  if(ctx->globalDecl) {
     EmitExternDecl(varName, ctx);
+    SymGAdd(varName, SymGlobalVar);
+  } else {
+    SymLAdd(varName, SymLocalVar);
   }
+
 
   VisitChildren(node, ctx);
 }
@@ -268,5 +275,11 @@ void visit(int node, Context* ctx) {
       break;
     case QualIdentifier:
       VisitQualIdentifier(node, ctx);
+      break;
+    case Block:
+      PushScope();
+      VisitChildren(node, ctx);
+      PopScope();
+      break;
     }
 }

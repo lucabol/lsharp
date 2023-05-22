@@ -71,8 +71,6 @@ IS		(u|U|l|L)*
 
 "new"       { return(NEW); }
 
-"[]"        { return(SLICESYM); }
-
 {L}({L}|{D})*		  { return(check_type()); }
 
 0[xX]{H}+{IS}?		{ return(CONSTANT); }

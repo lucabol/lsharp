@@ -95,13 +95,12 @@ extern int yydebug;
     CONTINUE = 295,                /* "continue"  */
     BREAK = 296,                   /* "break"  */
     RETURN = 297,                  /* "return"  */
-    SLICESYM = 298,                /* "[]"  */
-    NEW = 299,                     /* "new"  */
-    PTYPE = 300,                   /* "primitive type"  */
-    CAST = 306,                    /* CAST  */
-    NEG = 309,                     /* NEG  */
-    PREINCR = 310,                 /* PREINCR  */
-    PREDECR = 311,                 /* PREDECR  */
+    NEW = 298,                     /* "new"  */
+    PTYPE = 299,                   /* "primitive type"  */
+    CAST = 305,                    /* CAST  */
+    NEG = 308,                     /* NEG  */
+    PREINCR = 309,                 /* PREINCR  */
+    PREDECR = 310,                 /* PREDECR  */
     POSTINCR = 317,                /* POSTINCR  */
     POSTDECR = 318                 /* POSTDECR  */
   };

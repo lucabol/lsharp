@@ -21,7 +21,7 @@
 
 %define lr.type ielr
 %glr-parser
-%expect 314
+%expect 320
 
 %token NAMESPACE "namespace" USING "using" IDENTIFIER "identifier" CONSTANT "constant" STRING_LITERAL "string literal" SIZEOF "sizeof"
 %token INC_OP "++" DEC_OP "--" LEFT_OP "<<" RIGHT_OP ">>" LE_OP "<=" GE_OP ">=" EQ_OP "==" NE_OP "!="
@@ -31,7 +31,7 @@
 %token ENUM "enum"
 %token CASE "case" DEFAULT "default" IF "if" ELSE "else" SWITCH "switch" WHILE "while" DO "do" FOR "for" GOTO "goto" CONTINUE "continue" BREAK "break" RETURN "return"
 
-%token SLICESYM "[]" NEW "new"
+%token NEW "new"
 %token PTYPE "primitive type"
 
 %left ','
@@ -112,8 +112,7 @@ valuetype
   ;
 
 slicetype
-  : valuetype SLICESYM { NT($$,$1,$2) }
-  | valuetype '[' expr_list ']' { NT($$,$1,$2,$3,$4) }
+  : valuetype '[' ']' { NT($$,$1,$2,$3) }
   ;
 
 decl
@@ -127,20 +126,9 @@ valuedecl
   ;
 
 slicedecl
-  : slicetype IDENTIFIER ';' { NTT(DeclSimple,$$,$1,$2,$3) }
-  | valuetype IDENTIFIER '[' expr ']' ';' { NTT(DeclSimple,$$,$1,$2,$3,$4,$5,$6) }
-  | slicetype sliceassign sliceassign_list ';' { NTT(DeclAssign,$$,$1,$2,$3,$4) }
-  ;
-
-sliceassign_list
-  : %empty {EMPTY($$)}
-  | sliceassign_list ',' sliceassign { NT($$,$1,$2,$3) }
-  ;
-
-sliceassign
-  : IDENTIFIER '=' '{' expr_list '}' { NT($$,$1,$2,$3,$4,$5) }
-  | IDENTIFIER '=' "new" valuetype '[' expr ']' { NT($$,$1,$2,$3,$4,$5,$6,$7) }
-  | IDENTIFIER '=' expr { NT($$,$1,$2,$3) }
+  : valuetype IDENTIFIER '[' expr ']' ';' { NTT(DeclSimple,$$,$1,$2,$3,$4,$5,$6) }
+  | valuetype IDENTIFIER '[' expr ']' '=' '{' expr_list '}' ';' { NTT(DeclSimple,$$,$1,$2,$3,$4,$5,$6,$7) }
+  | valuetype IDENTIFIER '[' ']' '=' '{' expr_list '}' ';' { NTT(DeclSimple,$$,$1,$2,$3,$4,$5,$6,$7,$8,$9) }
   ;
 
 assign_list
@@ -167,7 +155,8 @@ param_list
   ;
 
 paramdecl
-  : type IDENTIFIER { NT($$,$1,$2) }
+  : type IDENTIFIER         { NT($$,$1,$2) }
+  | type IDENTIFIER '[' ']' { NT($$,$1,$2,$3,$4) }
   ;
 
 expr_list
@@ -177,7 +166,7 @@ expr_list
   ;
 
 block
-  : '{' stmts '}' { NT($$,$1,$2,$3) }
+  : '{' stmts '}' { NTT(Block, $$,$1,$2,$3) }
   ;
 
 stmts
@@ -191,6 +180,7 @@ stmt
   | decl { NTT(WithLine,$$,$1); }
   | expr ';' { NTT(WithLine,$$,$1, $2); }
   | WHILE '(' expr ')' block { NTT(WithLine,$$,$1,$2,$3,$4,$5) }
+  | FOR '(' expr_list ';' expr_list ';' expr_list ')' block { NTT(WithLine,$$,$1,$2,$3,$4,$5,$6,$7,$8,$9) }
   | RETURN expr ';' { NTT(WithLine,$$,$1,$2,$3) }
   | IF '(' expr ')' block ELSE block { NTT(WithLine,$$,$1,$2,$3,$4,$5,$6,$7) }
   ;
@@ -203,10 +193,10 @@ expr
   : CONSTANT
   | STRING_LITERAL
   | IDENTIFIER
-  | assign
   | funccall
   | qualidentifier
   | '(' expr ')'           %dprec 1 { NT($$,$1,$2,$3) }
+  | expr '=' expr          %dprec 1 { NT($$,$1,$2,$3) }
   | expr ADD_ASSIGN expr   %dprec 1 { NT($$,$1,$2,$3) }
   | expr MUL_ASSIGN expr   %dprec 1 { NT($$,$1,$2,$3) }
   | expr DIV_ASSIGN expr   %dprec 1 { NT($$,$1,$2,$3) }
@@ -232,6 +222,7 @@ expr
   | expr '*' expr          %dprec 12 { NT($$,$1,$2,$3) }
   | expr '/' expr          %dprec 12 { NT($$,$1,$2,$3) }
   | '(' type ')' expr      %dprec 13 { NT($$,$1,$2,$3,$4) }
+  | IDENTIFIER '[' expr ']' %dprec 13 { NT($$,$1,$2,$3,$4) }
   | '-' expr %prec NEG     %dprec 13 { NT($$,$1,$2) }
   | '+' expr %prec NEG     %dprec 13 { NT($$,$1,$2) }
   | '!' expr %prec '!'     %dprec 13 { NT($$,$1,$2) }

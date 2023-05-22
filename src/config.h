@@ -26,6 +26,7 @@ typedef struct {
   X(WithLine) \
   X(Using) \
   X(FuncDef) \
+  X(Block) \
   X(GlobalDecl) \
   X(Assign) \
   X(DeclSimple) \
@@ -45,6 +46,7 @@ inline static const char* NodeStr(Kind node) {
 #undef X
 
 typedef enum {
+  SymNotFound = -1,
   SymUsing,
   SymCUsing,
   SymQuotedUsing,
