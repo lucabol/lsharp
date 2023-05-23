@@ -242,6 +242,12 @@ void trace(int node, Context* ctx) {
   printf("%s\n", "");
 }
 
+void VisitCCode(int node, Context* ctx) {
+  Span sp = ChildValue(node, 1);
+  Span su = SpanSub(sp, 1, sp.len - 1);
+  BufferMCopy(0, ctx->c, su);
+}
+
 void visit(int node, Context* ctx) {
   //int line = 0;
   // trace(node,ctx);
@@ -295,6 +301,9 @@ void visit(int node, Context* ctx) {
       PushScope();
       VisitChildren(node, ctx);
       PopScope();
+      break;
+    case CCode:
+      VisitCCode(node, ctx);
       break;
     }
 }

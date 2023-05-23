@@ -31,7 +31,7 @@
 %token ENUM "enum"
 %token CASE "case" DEFAULT "default" IF "if" ELSE "else" SWITCH "switch" WHILE "while" DO "do" FOR "for" GOTO "goto" CONTINUE "continue" BREAK "break" RETURN "return"
 
-%token NEW "new"
+%token NEW "new" CCODE "c code"
 %token PTYPE "primitive type"
 
 %left ','
@@ -67,7 +67,7 @@ void AddGSymQuoted(yyscan_t scanner,int i, SymType t);
 %%
 
 translation_unit
-  : namespace_decl usings_list decl_or_func_list {
+  : namespace_decl usings_list decl_or_func_or_code_list {
     NT($$,$1,$2,$3)
     Env* env = yyget_extra(scanner);
     env->startNode = $$;
@@ -77,6 +77,10 @@ translation_unit
 namespace_decl
   : %empty {EMPTY($$)}
   | NAMESPACE IDENTIFIER ';' { NT($$,$1,$2,$3) }
+  ;
+
+ccode
+  : CCODE { NTT(CCode,$$,$1) }
   ;
 
 usings_list
@@ -90,14 +94,15 @@ using_dir
   | USING STRING_LITERAL ';'            { NTT(Using,$$,$2); STQ($2,SymQuotedUsing);}
   ;
 
-decl_or_func_list
+decl_or_func_or_code_list
   : %empty {EMPTY($$)}
-  | decl_or_func_list decl_or_func { NT($$,$1,$2) }
+  | decl_or_func_or_code_list decl_or_func_or_code { NT($$,$1,$2) }
   ;
 
-decl_or_func
+decl_or_func_or_code
   : decl { NTT(GlobalDecl, $$, $1) }
   | func
+  | ccode
   ;
 
 type
@@ -128,6 +133,7 @@ sliceassign
   | IDENTIFIER '[' expr ']'                       { NTT(SliceAssign,$$,$1,$2,$3,$4) }
   | IDENTIFIER '[' expr ']' '=' '{' expr_list '}' { NTT(SliceAssign,$$,$1,$2,$3,$4,$5,$6,$7,$8) }
   | IDENTIFIER '[' ']' '=' '{' expr_list '}'      { NTT(SliceAssign,$$,$1,$2,$3,$4,$5,$6,$7) }
+  | IDENTIFIER '[' ']' '=' STRING_LITERAL         { NTT(SliceAssign,$$,$1,$2,$3,$4,$5) }
   ;
 
 valuetype
@@ -193,6 +199,7 @@ stmt
   | FOR '(' expr_list ';' expr_list ';' expr_list ')' block { NTT(WithLine,$$,$1,$2,$3,$4,$5,$6,$7,$8,$9) }
   | RETURN expr ';' { NTT(WithLine,$$,$1,$2,$3) }
   | IF '(' expr ')' block ELSE block { NTT(WithLine,$$,$1,$2,$3,$4,$5,$6,$7) }
+  | ccode
   ;
 
 qualidentifier

@@ -39,18 +39,20 @@ IS		(u|U|l|L)*
 
 %%
 
+`[^`]*`     { return(CCODE);}
+
 <INITIAL>{
   "/*"      BEGIN(IN_COMMENT);
 }
 <IN_COMMENT>{
   "*/"      BEGIN(INITIAL);
-  [^*]+   // eat comment in chunks
+  [^*]+     // eat comment in chunks
   "*"       // eat the lone star
 }
 
 "//".*    { /* consume //-comment */ }
 
-"bool"|"byte"|"sbyte"|"char"|"double"|"float"|"int"|"unint"|"nint"|"long"|"ulong"|"short"|"ushort" { return PTYPE; }
+"bool"|"byte"|"sbyte"|"char"|"double"|"float"|"int"|"uint"|"unint"|"nint"|"long"|"ulong"|"short"|"ushort" { return PTYPE; }
 
 "namespace"	{ return(NAMESPACE); }
 "using"			{ return(USING); }
