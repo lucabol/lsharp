@@ -101,8 +101,8 @@ typedef struct {
 
 // C compiler options (in gcc terms)
 #define COMP   "gcc"
-#define OPT_g  "-g" 
-#define OPT_O  "-Ofast" 
+#define OPT_g  "-g3" 
+#define OPT_O  "-Ofast -fwhole-program" 
 #define OPT_o  "-o" 
 #define OPT_c  "-c" 
 
