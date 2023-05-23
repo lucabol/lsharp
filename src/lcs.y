@@ -117,6 +117,23 @@ slicetype
 decl
   : valuedecl
   | slicedecl
+  | refdecl
+  ;
+
+refdecl
+  : valuetype refassign refassign_list ';'  { NTT(DeclAssign,$$,$1,$2,$3,$4) }
+  ;
+
+refassign_list
+  : %empty { EMPTY($$) } 
+  | refassign_list ',' refassign { NT($$,$1,$2,$3) }
+  ;
+
+refassign
+  : IDENTIFIER '[' '*' ']'                            { NTT(RefAssign,$$,$1,$2,$4) }
+  | IDENTIFIER '[' '*' ']' '=' '{' expr_list '}'      { NTT(RefAssign,$$,$1,$2,$4,$5,$6,$7,$8) }
+  | IDENTIFIER '[' '*' ']' '=' STRING_LITERAL         { NTT(RefAssign,$$,$1,$2,$4,$5,$6) }
+  | IDENTIFIER '[' '*' ']' '=' IDENTIFIER             { NTT(RefAssign,$$,$1,$2,$4,$5,$6) }
   ;
 
 slicedecl

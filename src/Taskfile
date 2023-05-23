@@ -15,21 +15,22 @@ function clean {    # Clean things
     rm lex.yy.c lcs.tab.c lcs lcs.tab.h
 }
 
-function build {    # Build stuff
-   flex lcs.l
-   bison -d lcs.y
-   gcc $CFLAGS lcs.tab.c lex.yy.c visit.c main.c -o lcs
+function commonbuild {
+
+  xxd -i ./libinc.h > libinc.c
+  flex lcs.l
+  bison -d lcs.y
+  gcc $1 lcs.tab.c lex.yy.c visit.c main.c -o lcs
 }
-function buildr {    # Build stuff
-   flex lcs.l
-   bison -d lcs.y
-   gcc $CRFLAGS lcs.tab.c lex.yy.c visit.c main.c -o lcsr
+function build {    # Build debug
+  commonbuild $CFLAGS
 }
-function builds {    # Build stuff
-   flex lcs.l
-   bison -d lcs.y
-   gcc $CSFLAGS lcs.tab.c lex.yy.c visit.c main.c -o lcss
-   strip -s -R .comment -R .gnu.version --strip-unneeded ./lcss
+function buildr {    # Build speed
+  commonbuild $CRFLAGS
+}
+function builds {    # Build size
+  commonbuild $CSFLAGS
+  strip -s -R .comment -R .gnu.version --strip-unneeded ./lcss
 }
 
 function run {    # Runs something

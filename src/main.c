@@ -12,6 +12,10 @@
 #include "visit.h"
 #include "symtable.h"
 
+// Generated from xxd from libinc.h
+#include "libinc.c"
+
+
 // Buffers for the header and code files for the generated code. Also for reading and writing the files.
 // TODO: need to malloc different ones instead of using same one
 Byte  _code[MAXFILESIZE], _header[MAXFILESIZE], _infile[MAXFILESIZE], _errors[MAXERRORBUF];
@@ -63,7 +67,8 @@ void hpreamble(Buffer* b, Span inclName) {
   BufferMLCopy(0, b, S("#ifndef "), up, S("_H"));
   BufferMLCopy(0, b, S("#define "), up, S("_H"), S("\n"));
 
-  BufferSLCopy(0,b, "#include <stdint.h>\n#include <stdbool.h>");
+  Span libheader = SPAN(__libinc_h, __libinc_h_len);
+  BufferMLCopy(0, b, libheader);
 }
 void hpostamble(Buffer* b) {
   BufferSLCopy(0,b, "\n#endif");

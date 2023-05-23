@@ -66,8 +66,8 @@ void VisitToken(int node, Context* ctx) {
 
 Span ttypes[] = { S("bool"),S("byte"),S("sbyte"),S("char"),S("double"),S("float"),
   S("int"),S("uint"),S("nint"),S("nuint"),S("long"),S("ulong"),S("short"),S("ushort")};
-Span stypes[] = { S("bool"),S("int8_t"),S("sbyte"),S("char"),S("double"),S("float"),
-  S("int32_t"),S("uint32_t"),S("int"),S("unsigned int"),S("int64_t"),S("uint64_t"),S("int16_t"),S("uint16_t")};
+Span stypes[] = { S("bool"),S("int8_t"),S("sint8_t"),S("char"),S("double"),S("float"),
+  S("int32_t"),S("uint32_t"),S("int_least16_t"),S("uint_least16_t"),S("int64_t"),S("uint64_t"),S("int16_t"),S("uint16_t")};
 
 Span TypeConvert(Span sp) {
   for(size_t i = 0; i < sizeof(ttypes) / sizeof(ttypes[0]); i++) {
@@ -204,6 +204,16 @@ void VisitSliceAssign(int node, Context* ctx) {
   VisitChildren(node, ctx);
 }
 
+void VisitRefAssign(int node, Context* ctx) {
+
+  Span varName = ChildValue(node, 1);
+
+  AddToST(varName, ctx, true);
+  EmitHeader(varName, ctx, true);
+  
+  VisitChildren(node, ctx);
+}
+
 void VisitDeclSimple(int node, Context* ctx) {
 
   ExtractType(Child(node, 1), ctx);
@@ -293,6 +303,9 @@ void visit(int node, Context* ctx) {
       break;
     case SliceAssign: // Assignment after declaration 
       VisitSliceAssign(node, ctx);
+      break;
+    case RefAssign: // Assignment after declaration 
+      VisitRefAssign(node, ctx);
       break;
     case QualIdentifier:
       VisitQualIdentifier(node, ctx);

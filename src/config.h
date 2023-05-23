@@ -32,6 +32,7 @@ typedef struct {
   X(DeclSimple) \
   X(DeclAssign) \
   X(SliceAssign) \
+  X(RefAssign) \
   X(CCode) \
   X(DeclSliceSimple) \
 
