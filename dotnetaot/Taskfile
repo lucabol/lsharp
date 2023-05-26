@@ -1,0 +1,33 @@
+#!/bin/bash
+
+function clean {    # Clean things
+    rm leibnizc leibnizlcs bin/Release/net8.0/linux-x64/publish/dotnetaot  bin/Debug/net8.0/dotnetaot.dll
+}
+
+function build {    # Build stuff
+  clean
+  time dotnet build
+  time dotnet publish
+  gcc -Ofast -x c Program.cs -oleibnizc
+  time ../lcs -O -oleibnizlcs ./Program.cs
+}
+
+function run {    # Runs something
+  build
+  
+}
+
+function help {     # Prints help
+    echo "Usage: $0 <task> <args>"
+    echo "Execute a task with the specified arguments."
+    echo "By adding 'alias run=./Taskfile' you can then call it as 'run <task> <args>"
+    echo
+    echo "Tasks:"
+    grep '^function .* #.* ' Taskfile | # Start with function and has # somewhere
+      cut -d' ' -f 2- |                 # Remove the word 'function'
+      tr -d '{' |                       # Remove '{}'
+      sed 's/^/  /g' |                  # Indent by two spaces
+      column --table --separator '#'    # column it using # as the separator
+}
+
+${@:-help}

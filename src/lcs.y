@@ -21,7 +21,7 @@
 
 %define lr.type ielr
 %glr-parser
-%expect 320
+%expect 321
 
 %token NAMESPACE "namespace" USING "using" IDENTIFIER "identifier" CONSTANT "constant" STRING_LITERAL "string literal" SIZEOF "sizeof"
 %token INC_OP "++" DEC_OP "--" LEFT_OP "<<" RIGHT_OP ">>" LE_OP "<=" GE_OP ">=" EQ_OP "==" NE_OP "!="
@@ -31,7 +31,7 @@
 %token ENUM "enum"
 %token CASE "case" DEFAULT "default" IF "if" ELSE "else" SWITCH "switch" WHILE "while" DO "do" FOR "for" GOTO "goto" CONTINUE "continue" BREAK "break" RETURN "return"
 
-%token NEW "new" CCODE "c code"
+%token NEW "new" CCODE "c code" REFSYM ".." PBLOCK "#if .. #endif"
 %token PTYPE "primitive type"
 
 %left ','
@@ -60,8 +60,8 @@
   #define ST(name,sym) AddGSym(scanner, name, sym)
   #define STQ(name,sym) AddGSymQuoted(scanner, name, sym)
 
-  void AddGSym(yyscan_t scanner,int i, SymType t); 
-void AddGSymQuoted(yyscan_t scanner,int i, SymType t);
+  void AddGSym(yyscan_t scanner,int i, SymKind t); 
+  void AddGSymQuoted(yyscan_t scanner,int i, SymKind t);
 }
 
 %%
@@ -103,6 +103,7 @@ decl_or_func_or_code
   : decl { NTT(GlobalDecl, $$, $1) }
   | func
   | ccode
+  | PBLOCK
   ;
 
 type
@@ -121,7 +122,7 @@ decl
   ;
 
 refdecl
-  : valuetype refassign refassign_list ';'  { NTT(DeclAssign,$$,$1,$2,$3,$4) }
+  : valuetype '[' ']' refassign refassign_list ';'  { NTT(RefDeclAssign,$$,$1,$2,$3,$4,$5,$6) }
   ;
 
 refassign_list
@@ -130,10 +131,11 @@ refassign_list
   ;
 
 refassign
-  : IDENTIFIER '[' '*' ']'                            { NTT(RefAssign,$$,$1,$2,$4) }
-  | IDENTIFIER '[' '*' ']' '=' '{' expr_list '}'      { NTT(RefAssign,$$,$1,$2,$4,$5,$6,$7,$8) }
-  | IDENTIFIER '[' '*' ']' '=' STRING_LITERAL         { NTT(RefAssign,$$,$1,$2,$4,$5,$6) }
-  | IDENTIFIER '[' '*' ']' '=' IDENTIFIER             { NTT(RefAssign,$$,$1,$2,$4,$5,$6) }
+  : IDENTIFIER                            { NTT(RefAssign,$$,$1) }
+  | IDENTIFIER '=' '{' expr_list '}'      { NTT(RefAssign,$$,$1,$2,$3,$4,$5) }
+  | IDENTIFIER '=' STRING_LITERAL         { NTT(RefAssign,$$,$1,$2,$3) }
+  | IDENTIFIER '=' IDENTIFIER             { NTT(RefAssign,$$,$1,$2,$3) }
+  | IDENTIFIER '=' IDENTIFIER '[' expr REFSYM expr ']'   { NTT(RefAssign,$$,$1,$2,$3,$4,$5,$6,$7,$8) }
   ;
 
 slicedecl
@@ -271,12 +273,12 @@ expr
 
 %%
 
-void AddGSym(yyscan_t scanner,int i, SymType t) {
+void AddGSym(yyscan_t scanner,int i, SymKind t) {
   Span s = SPAN((Byte*)NodeName[i], NodeLen[i]);
-  SymGAdd(s, t);
+  SymGAdd(s, t, SPAN0);
 }
-void AddGSymQuoted(yyscan_t scanner,int i, SymType t) {
+void AddGSymQuoted(yyscan_t scanner,int i, SymKind t) {
   Span sq = SPAN((Byte*)NodeName[i], NodeLen[i]);
   Span s  = SPAN(sq.ptr + 1, sq.len - 2);
-  SymGAdd(s, t);
+  SymGAdd(s, t, SPAN0);
 }

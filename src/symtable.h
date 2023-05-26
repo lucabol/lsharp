@@ -12,8 +12,13 @@ extern Byte* SymLcl[];
 extern Size  SymGLen[];
 extern Size  SymLLen[];
 
-extern SymType SymGType[];
-extern SymType SymLType[];
+extern Byte* SymLType[];
+extern Size  SymLTLen[];
+extern Byte* SymGType[];
+extern Size  SymGTLen[];
+
+extern SymKind SymGKind[];
+extern SymKind SymLKind[];
 extern int   NextLIndex;
 
 extern int   ScopeStack[MAXSCOPES];
@@ -21,13 +26,18 @@ extern int   ScopeIndex;
 extern int   SymGLength;
 
 inline void
-SymLAdd(Span s, SymType t) {
+SymLAdd(Span s, SymKind t, Span typ) {
+  assert(SpanValid(s));
+
   if(NextLIndex > MAXLOCALSYMBOLS) {
     die("Too many local symbols.");
   }
   SymLcl  [NextLIndex] = s.ptr;
   SymLLen [NextLIndex] = s.len;
-  SymLType[NextLIndex] = t;
+  SymLKind[NextLIndex] = t;
+  SymLType[NextLIndex] = typ.ptr;
+  SymLTLen [NextLIndex] = typ.len;
+
   NextLIndex++;
 }
 
@@ -48,7 +58,7 @@ inline void PopScope()  {
 }
 
 inline void
-SymGAdd(Span sym, SymType t) {
+SymGAdd(Span sym, SymKind t, Span typ) {
   assert(SpanValid(sym));
 
   if(MAXLEN < SymGLength)
@@ -63,14 +73,17 @@ SymGAdd(Span sym, SymType t) {
     if(ptr == 0) {
       SymGbl[i]  = sym.ptr;
       SymGLen[i] = sym.len;
-      SymGType[i] = t;
+      SymGKind[i]= t;
+      SymGType[i]= typ.ptr;
+      SymGTLen[i]= typ.len;
+
       SymGLength++;
       return;
     }
 
     Span e = SPAN(ptr, SymGLen[i]);
 
-    if(SpanEqual(sym, e) && SymGType[i] == t) {
+    if(SpanEqual(sym, e) && SymGKind[i] == t) {
       die("Global redefinition of symbol.");
     }
   }
@@ -95,22 +108,24 @@ SymGFind(Span sym) {
   }
 }
 
-inline SymType
-SymTypeFind(Span s) {
+inline SymKind
+SymKindFind(Span s) {
   int v;
   if((v = SymLFind(s)) != -1) {
-    return SymLType[v];
+    return SymLKind[v];
   }
-  return SymGType[SymGFind(s)];
+  return SymGKind[SymGFind(s)];
 }
 
 inline void
 SymInit() {
   memset(SymGbl,   0, MAXGLOBALSYMBOLS * sizeof(SymGbl[0]));
   memset(SymGLen,  0, MAXGLOBALSYMBOLS * sizeof(SymGLen[0]));
+  memset(SymGKind, 0, MAXGLOBALSYMBOLS * sizeof(SymGKind[0]));
   memset(SymGType, 0, MAXGLOBALSYMBOLS * sizeof(SymGType[0]));
-  SymGLength = 0;
+  memset(SymGTLen, 0, MAXGLOBALSYMBOLS * sizeof(SymGTLen[0]));
 
+  SymGLength = 0;
   NextLIndex = 0;
 }
 
@@ -118,15 +133,21 @@ SymInit() {
 
 #ifdef SYMTABLE_IMPL
 
-Byte* SymGbl[MAXGLOBALSYMBOLS];
-Size  SymGLen[MAXGLOBALSYMBOLS];
-SymType SymGType[MAXGLOBALSYMBOLS];
+Byte*   SymGbl[MAXGLOBALSYMBOLS];
+Size    SymGLen[MAXGLOBALSYMBOLS];
+SymKind SymGKind[MAXGLOBALSYMBOLS];
+Byte*   SymGType[MAXGLOBALSYMBOLS];
+Size    SymGTLen[MAXGLOBALSYMBOLS];
+
 int SymGLength;
 
-Byte* SymLcl[MAXLOCALSYMBOLS];
-Size  SymLLen[MAXLOCALSYMBOLS];
-SymType SymLType[MAXLOCALSYMBOLS];
-int   NextLIndex;
+Byte*   SymLcl[MAXLOCALSYMBOLS];
+Size    SymLLen[MAXLOCALSYMBOLS];
+SymKind SymLKind[MAXLOCALSYMBOLS];
+Byte*   SymLType[MAXLOCALSYMBOLS];
+Size    SymLTLen[MAXLOCALSYMBOLS];
+
+int NextLIndex;
 
 int   ScopeStack[MAXSCOPES];
 int   ScopeIndex;
@@ -134,13 +155,13 @@ int   ScopeIndex;
 void PushScope();
 void PopScope();
 
-void  SymLAdd(Span s, SymType t);
+void  SymLAdd(Span s, SymKind t, Span typ);
 int   SymLFind(Span sym);
-void  SymGAdd(Span s, SymType t);
+void  SymGAdd(Span s, SymKind t, Span typ);
 int   SymGFind(Span sym);
 
 void  SymInit();
 
-SymType  SymTypeFind(Span s);
+SymKind  SymKindFind(Span s);
 
 #endif

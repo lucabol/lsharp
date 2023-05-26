@@ -12,7 +12,7 @@ IS		(u|U|l|L)*
 %option extra-type="Env*"
 %option header-file="lcs.lex.h"
 
-%x IN_COMMENT
+%x IN_COMMENT CPPIF
 
 %{
   #include "config.h"
@@ -41,6 +41,7 @@ IS		(u|U|l|L)*
 
 `[^`]*`     { return(CCODE);}
 
+
 <INITIAL>{
   "/*"      BEGIN(IN_COMMENT);
 }
@@ -50,10 +51,21 @@ IS		(u|U|l|L)*
   "*"       // eat the lone star
 }
 
-"//".*    { /* consume //-comment */ }
+
+<INITIAL>{
+  "#if"                                { BEGIN(CPPIF); return(PBLOCK);}
+}
+<CPPIF>{
+  "#endif"                             { BEGIN(INITIAL); } 
+  (.|\n)*                              { return(PBLOCK); }
+}
+
+
+"//".*      { /* consume //-comment */ }
 
 "bool"|"byte"|"sbyte"|"char"|"double"|"float"|"int"|"uint"|"unint"|"nint"|"long"|"ulong"|"short"|"ushort" { return PTYPE; }
 
+".."			  { return(REFSYM); }
 "namespace"	{ return(NAMESPACE); }
 "using"			{ return(USING); }
 "break"			{ return(BREAK); }

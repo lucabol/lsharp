@@ -29,12 +29,11 @@ typedef struct {
   X(Block) \
   X(GlobalDecl) \
   X(Assign) \
-  X(DeclSimple) \
   X(DeclAssign) \
+  X(RefDeclAssign) \
   X(SliceAssign) \
   X(RefAssign) \
   X(CCode) \
-  X(DeclSliceSimple) \
 
 #define X(n) n,
 typedef enum {
@@ -59,7 +58,9 @@ typedef enum {
   SymGlobalVar,
   SymLocalSliceVar,
   SymGlobalSliceVar,
-} SymType;
+  SymLocalRefVar,
+  SymGlobalRefVar,
+} SymKind;
 
 typedef struct {
   Buffer* c;

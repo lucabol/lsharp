@@ -1,11 +1,12 @@
 /*
- * Thechnically, we are:
+ * We are:
  * 1. Simplifiying C by removing pointers, references, structs, unions, ...
  * 2. Make integer types of fixed size (i.e., int -> int32_t, long -> int64_t,...)
  * 3. Introduce a simple namespace/module system
  * 4. Interoperate seamenslessly with C (i.e., using stdio.h ... stdio.printf(...))
  * 5. Make array manipulation safe (array store len, foreach, ...)
 */
+
 #include <ctype.h>
 #include <stdlib.h>
 
@@ -31,15 +32,15 @@ void ResetState(Context* ctx) {
 inline static bool
 IsLocalFunc(Span sp) {
   int symbol = SymGFind(sp);
-  SymType stype = SymGType[symbol];
+  SymKind stype = SymGKind[symbol];
 
   return (stype == SymLocalFunc) && (!SpanEqual(sp, S("main"))) && (!SpanEqual(sp, S("Main")));
 }
 
 inline static bool
 IsGlobalVar(Span sp) {
-  SymType t = SymTypeFind(sp);
-  return t == SymGlobalVar || t == SymGlobalSliceVar;
+  SymKind t = SymKindFind(sp);
+  return t == SymGlobalVar || t == SymGlobalSliceVar || t == SymGlobalRefVar;
 }
 
 void VisitToken(int node, Context* ctx) {
@@ -110,7 +111,7 @@ void VisitUsing(int node, Context* ctx) {
     int symbol = SymGFind(value);
     if(symbol == -1) die("Using symbol not found in the symbol table??");
 
-    SymType t = SymGType[symbol];
+    SymKind t = SymGKind[symbol];
     if(t == SymQuotedUsing) {
       BufferMLCopy(0, ctx->h, S("#include "), value);
     } else {
@@ -133,7 +134,7 @@ void VisitQualIdentifier(int node, Context* ctx) {
     ERR(node, "Qualified symbol without a corresponding using statement.");
     return;
   }
-  switch(SymGType[nsNode]) {
+  switch(SymGKind[nsNode]) {
     case SymUsing:
       BufferMCopy(0, ctx->c, namespace, ChildValue(node,3));
       break;
@@ -177,21 +178,10 @@ void EmitHeader(Span varName, Context* ctx, bool isSliceType) {
 
 void AddToST(Span varName, Context* ctx, bool isSliceType) {
   if(ctx->globalDecl) {
-    SymGAdd(varName, isSliceType ? SymGlobalSliceVar : SymGlobalVar);
+    SymGAdd(varName, isSliceType ? SymGlobalSliceVar : SymGlobalVar, ctx->typeName);
   } else {
-    SymLAdd(varName, isSliceType ? SymLocalSliceVar : SymLocalVar);
+    SymLAdd(varName, isSliceType ? SymLocalSliceVar  : SymLocalVar,  ctx->typeName);
   }
-}
-
-void VisitDeclSliceSimple(int node, Context* ctx) {
-
-  ExtractType(Child(node, 1), ctx);
-  Span varName = ChildValue(node, 2);
-
-  AddToST(varName, ctx, true);
-  EmitHeader(varName, ctx, true);
-
-  VisitChildren(node, ctx);
 }
 
 void VisitSliceAssign(int node, Context* ctx) {
@@ -204,6 +194,15 @@ void VisitSliceAssign(int node, Context* ctx) {
   VisitChildren(node, ctx);
 }
 
+void VisitRefDeclAssign(int node, Context* ctx) {
+  ExtractType(Child(node, 1), ctx);
+
+  BufferMCopy(0,ctx->c,ctx->typeName,S("Span "));
+  visit(Child(node, 4), ctx);
+  visit(Child(node, 5), ctx);
+  visit(Child(node, 6), ctx);
+}
+
 void VisitRefAssign(int node, Context* ctx) {
 
   Span varName = ChildValue(node, 1);
@@ -211,17 +210,6 @@ void VisitRefAssign(int node, Context* ctx) {
   AddToST(varName, ctx, true);
   EmitHeader(varName, ctx, true);
   
-  VisitChildren(node, ctx);
-}
-
-void VisitDeclSimple(int node, Context* ctx) {
-
-  ExtractType(Child(node, 1), ctx);
-  Span varName = ChildValue(node, 2);
-
-  AddToST(varName, ctx, false);
-  EmitHeader(varName, ctx, false);
-
   VisitChildren(node, ctx);
 }
 
@@ -289,12 +277,6 @@ void visit(int node, Context* ctx) {
       VisitChildren(node, ctx);
       ResetState(ctx);
       break;
-    case DeclSimple: // Emit extern declarations in header file
-      VisitDeclSimple(node, ctx);
-      break;
-    case DeclSliceSimple: // Emit extern declarations in header file
-      VisitDeclSliceSimple(node, ctx);
-      break;
     case DeclAssign: // Emit extern declarations in header file
       VisitDeclAssign(node, ctx);
       break;
@@ -303,6 +285,9 @@ void visit(int node, Context* ctx) {
       break;
     case SliceAssign: // Assignment after declaration 
       VisitSliceAssign(node, ctx);
+      break;
+    case RefDeclAssign: // Assignment after declaration 
+      VisitRefDeclAssign(node, ctx);
       break;
     case RefAssign: // Assignment after declaration 
       VisitRefAssign(node, ctx);
