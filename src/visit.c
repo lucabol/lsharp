@@ -315,7 +315,7 @@ void VisitIndexer(int node, Context* ctx) {
     visit(Child(node, 1), ctx);
     BufferSCopy(0, ctx->c, ", ");
     visit(Child(node, 3), ctx);
-    BufferSCopy(0, ctx->c, ");");
+    BufferSCopy(0, ctx->c, ")");
   } else {
     VisitChildren(node, ctx);
   }

@@ -51,7 +51,7 @@ function buildtests {    # Build tests
   mkdir -p $RBIN
 
   for T in $TARGETS; do
-    ./$COMP -o$RBIN/$T "$TESTDIR/$T.cs"
+    ./$COMP -g -o$RBIN/$T "$TESTDIR/$T.cs"
     checkResult "Compiling" $T
   done
 

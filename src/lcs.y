@@ -134,6 +134,7 @@ refassign
   : IDENTIFIER '=' '{' expr_list '}'      { NTT(RefAssignList,$$,$1,$2,$3,$4,$5) }
   | IDENTIFIER '=' STRING_LITERAL         { NTT(RefAssignStr,$$,$1,$2,$3) }
   | IDENTIFIER '=' funccall               { NTT(RefAssignFunc,$$,$1,$2,$3) }
+  | IDENTIFIER '=' IDENTIFIER             { NTT(RefAssignFunc,$$,$1,$2,$3) }
   | IDENTIFIER '=' IDENTIFIER '[' expr REFSYM expr ']'   { NTT(RefAssignId,$$,$1,$2,$3,$4,$5,$6,$7,$8) }
   ;
 

@@ -9,7 +9,9 @@ char[] GetName() {
 }
 
 int main() {
-  char[] t = "Test";
+  char[]
+    s1 = "Test",
+    s2 = "Bob";
 
   int[] a = {1,2,3},
         k = {1,2,3};
@@ -18,13 +20,10 @@ int main() {
   
   int i, sum = 0;
   for(i = 0; i < 3; i++) {
-    sum += a[i];
-    sum += b[i];
-    sum += k[i];
-    sum += d[i];
+    sum += a[i] + b[i] + k[i] + d[i];
   }
   
   char[] name = GetName();
 
-  return sum - 26;
+  return sum - 24;
 }
