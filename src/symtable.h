@@ -3,6 +3,7 @@
 
 #include "config.h"
 #include "ulib/Hash.h"
+#include "ulib/DodStruct.h"
 
 #define LOADFACTOR 60
 #define MAXLEN (1 << MAXGLOBALEXP) * LOADFACTOR / 100
