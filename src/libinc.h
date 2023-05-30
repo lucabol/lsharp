@@ -5,15 +5,20 @@
 #include <stdbool.h>
 
 #ifdef LS_USERDIEFUNC
-  #define SPANDIE LS_USERDIEFUNC
+  #define TRAP LS_USERDIEFUNC
 #else
-  #define SPANDIE *(volatile int *)0 = 0
+#if __GNUC__
+      #define TRAP __builtin_trap()
+#elif _MSC_VER
+      #define TRAP __debugbreak()
+#else
+      #define TRAP *(volatile int *)0 = 0
+#endif
 #endif
 
 #define TSPAN(T) typedef struct {T* ptr;int32_t len;} T##Span; \
-  static inline T T##Span##Get(T##Span sp, int32_t idx) { if(idx < 0 || idx >= sp.len) SPANDIE; return sp.ptr[idx];} \
-  static inline void T##Span##Set(T##Span sp, int32_t idx, T value) { if(idx < 0 || idx >= sp.len) SPANDIE; sp.ptr[idx] = value;} \
-
+  static inline T T##SpanGet(T##Span sp, int32_t idx) { if(idx < 0 || idx >= sp.len) TRAP; return sp.ptr[idx];} \
+  static inline void T##SpanSet(T##Span sp, int32_t idx, T value) { if(idx < 0 || idx >= sp.len) TRAP; sp.ptr[idx] = value;} \
 
 TSPAN(bool);
 TSPAN(uint8_t);
@@ -32,5 +37,7 @@ TSPAN(uint16_t);
 
 #undef TSPAN
 #undef SPANDIE
+
+#define ARSIZE(arr) (sizeof(arr)/sizeof(0[arr]))
 
 #endif

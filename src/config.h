@@ -32,7 +32,13 @@ typedef struct {
   X(DeclAssign) \
   X(RefDeclAssign) \
   X(SliceAssign) \
-  X(RefAssign) \
+  X(RefAssignCommas) \
+  X(RefAssignList) \
+  X(RefAssignId) \
+  X(RefAssignStr) \
+  X(RefAssignFunc) \
+  X(Indexer) \
+  X(RefType) \
   X(CCode) \
 
 #define X(n) n,
@@ -67,6 +73,9 @@ typedef struct {
   Buffer* h;
   Buffer* e;
 
+  Buffer* arrays;
+  Buffer* spans;
+
   char* filename;
   Span name_space;
 
@@ -84,6 +93,8 @@ typedef struct {
 #define MAXFILESIZE MB(1)
 // How big the buffer for errors
 #define MAXERRORBUF KB(1)
+// How big the buffer for span declarations
+#define MAXSPANBUF KB(1)
 
 // AST features
 #define MAXNODES KB(64)

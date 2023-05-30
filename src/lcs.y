@@ -108,11 +108,11 @@ decl_or_func_or_code
 
 type
   : valuetype
-  | slicetype
+  | reftype
   ;
 
-slicetype
-  : valuetype '[' ']' { NT($$,$1,$2,$3) }
+reftype
+  : valuetype '[' ']' { NTT(RefType,$$,$1,$2,$3) }
   ;
 
 decl
@@ -127,15 +127,14 @@ refdecl
 
 refassign_list
   : %empty { EMPTY($$) } 
-  | refassign_list ',' refassign { NT($$,$1,$2,$3) }
+  | refassign_list ',' refassign { NTT(RefAssignCommas,$$,$1,$2,$3) }
   ;
 
 refassign
-  : IDENTIFIER                            { NTT(RefAssign,$$,$1) }
-  | IDENTIFIER '=' '{' expr_list '}'      { NTT(RefAssign,$$,$1,$2,$3,$4,$5) }
-  | IDENTIFIER '=' STRING_LITERAL         { NTT(RefAssign,$$,$1,$2,$3) }
-  | IDENTIFIER '=' IDENTIFIER             { NTT(RefAssign,$$,$1,$2,$3) }
-  | IDENTIFIER '=' IDENTIFIER '[' expr REFSYM expr ']'   { NTT(RefAssign,$$,$1,$2,$3,$4,$5,$6,$7,$8) }
+  : IDENTIFIER '=' '{' expr_list '}'      { NTT(RefAssignList,$$,$1,$2,$3,$4,$5) }
+  | IDENTIFIER '=' STRING_LITERAL         { NTT(RefAssignStr,$$,$1,$2,$3) }
+  | IDENTIFIER '=' funccall               { NTT(RefAssignFunc,$$,$1,$2,$3) }
+  | IDENTIFIER '=' IDENTIFIER '[' expr REFSYM expr ']'   { NTT(RefAssignId,$$,$1,$2,$3,$4,$5,$6,$7,$8) }
   ;
 
 slicedecl
@@ -153,6 +152,7 @@ sliceassign
   | IDENTIFIER '[' expr ']' '=' '{' expr_list '}' { NTT(SliceAssign,$$,$1,$2,$3,$4,$5,$6,$7,$8) }
   | IDENTIFIER '[' ']' '=' '{' expr_list '}'      { NTT(SliceAssign,$$,$1,$2,$3,$4,$5,$6,$7) }
   | IDENTIFIER '[' ']' '=' STRING_LITERAL         { NTT(SliceAssign,$$,$1,$2,$3,$4,$5) }
+  | IDENTIFIER '[' ']' '=' funccall               { NTT(SliceAssign,$$,$1,$2,$3,$4,$5) }
   ;
 
 valuetype
@@ -258,7 +258,7 @@ expr
   | expr '*' expr          %dprec 12 { NT($$,$1,$2,$3) }
   | expr '/' expr          %dprec 12 { NT($$,$1,$2,$3) }
   | '(' type ')' expr      %dprec 13 { NT($$,$1,$2,$3,$4) }
-  | IDENTIFIER '[' expr ']' %dprec 13 { NT($$,$1,$2,$3,$4) }
+  | IDENTIFIER '[' expr ']' %dprec 13 { NTT(Indexer, $$,$1,$2,$3,$4) }
   | qualidentifier '[' expr ']' %dprec 13 { NT($$,$1,$2,$3,$4) }
   | '-' expr %prec NEG     %dprec 13 { NT($$,$1,$2) }
   | '+' expr %prec NEG     %dprec 13 { NT($$,$1,$2) }

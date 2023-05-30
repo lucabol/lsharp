@@ -168,19 +168,31 @@ void ExtractType(int node, Context* ctx) {
   }
 }
 
-void EmitHeader(Span varName, Context* ctx, bool isSliceType) {
+// TODO: remove this enum by adding an IsGlobal field to symbol table to make it hortogonal.
+typedef enum {IsVar, IsSlice, IsRef} VarKind;
+
+void EmitHeader(Span varName, Context* ctx, VarKind vkind) {
   if(ctx->globalDecl) {
-    BufferMLCopy(0, ctx->h, S("extern "), ctx->typeName, S(" "),
-                 ctx->name_space, varName,
-                 isSliceType ? S("[]") : S(""), S(";"));
+    if(vkind != IsRef) {
+      BufferMLCopy(0, ctx->h, S("extern "), ctx->typeName, S(" "),
+                   ctx->name_space, varName,
+                   vkind == IsSlice ? S("[]") : S(""), S(";"));
+    } else {
+      BufferMLCopy(0, ctx->h, S("extern "), ctx->typeName, S("Span "),
+                   ctx->name_space, varName, S(";"));
     }
+  }
 }
 
-void AddToST(Span varName, Context* ctx, bool isSliceType) {
+void AddToST(Span varName, Context* ctx, VarKind vkind) {
   if(ctx->globalDecl) {
-    SymGAdd(varName, isSliceType ? SymGlobalSliceVar : SymGlobalVar, ctx->typeName);
+    SymGAdd(varName, vkind == IsSlice ? SymGlobalSliceVar :
+                     vkind == IsRef   ? SymGlobalRefVar : SymGlobalVar,
+            ctx->typeName);
   } else {
-    SymLAdd(varName, isSliceType ? SymLocalSliceVar  : SymLocalVar,  ctx->typeName);
+    SymLAdd(varName, vkind == IsSlice ? SymLocalSliceVar :
+                     vkind == IsRef   ? SymLocalRefVar : SymLocalVar,
+            ctx->typeName);
   }
 }
 
@@ -188,8 +200,8 @@ void VisitSliceAssign(int node, Context* ctx) {
 
   Span varName = ChildValue(node, 1);
 
-  AddToST(varName, ctx, true);
-  EmitHeader(varName, ctx, true);
+  AddToST(varName, ctx, IsSlice);
+  EmitHeader(varName, ctx, IsSlice);
   
   VisitChildren(node, ctx);
 }
@@ -197,29 +209,124 @@ void VisitSliceAssign(int node, Context* ctx) {
 void VisitRefDeclAssign(int node, Context* ctx) {
   ExtractType(Child(node, 1), ctx);
 
-  BufferMCopy(0,ctx->c,ctx->typeName,S("Span "));
+  // Reset temporary buffers, should we have a BufferReset function?
+  BufferDealloc(ctx->arrays, ctx->arrays->index);
+  BufferDealloc(ctx->spans,  ctx->spans->index);
+
   visit(Child(node, 4), ctx);
   visit(Child(node, 5), ctx);
-  visit(Child(node, 6), ctx);
+
+  if(ctx->arrays->index > 0) {
+    BufferMCopy(' ',ctx->c,ctx->typeName);
+    Span refDecls = BufferToSpan(ctx->arrays);
+    BufferMCopy(0,ctx->c, refDecls, S(";"));
+  }
+  if(ctx->spans->index > 0) {
+    BufferMCopy(0,ctx->c,ctx->typeName, S("Span "));
+    Span refDecls = BufferToSpan(ctx->spans);
+    BufferMCopy(0,ctx->c, refDecls, S(";"));
+  }
 }
 
-void VisitRefAssign(int node, Context* ctx) {
+void VisitRefType(int node, Context* ctx) {
+  ExtractType(Child(node, 1), ctx);
+
+  BufferMCopy(0,ctx->c, ctx->typeName, S("Span "));
+
+  if(ctx->toHeader) {
+    BufferMCopy(0,ctx->h, ctx->typeName, S("Span "));
+  }
+}
+void VisitRefAssignList(int node, Context* ctx) {
 
   Span varName = ChildValue(node, 1);
 
-  AddToST(varName, ctx, true);
-  EmitHeader(varName, ctx, true);
+  AddToST(varName, ctx, IsRef);
+  EmitHeader(varName, ctx, IsRef);
+  
+  Span pre = S(" __Buf");
+
+  Buffer* tmp = ctx->c;
+  ctx->c = ctx->arrays;
+  BufferMCopy(0, ctx->c, pre, varName, S("[] "));
+  visit(Child(node, 2), ctx);
+  visit(Child(node, 3), ctx);
+  visit(Child(node, 4), ctx);
+  visit(Child(node, 5), ctx);
+  ctx->c = tmp;
+
+  BufferMCopy(0, ctx->spans, ctx->globalDecl ? ctx->name_space : S(""),
+              varName, S("="), S("{"), pre, varName, S(",ARSIZE("),pre,varName, S(")}"));
+}
+
+void VisitRefAssignStr(int node, Context* ctx) {
+
+  Span varName = ChildValue(node, 1);
+
+  AddToST(varName, ctx, IsRef);
+  EmitHeader(varName, ctx, IsRef);
+  
+  Span pre = S(" __Buf");
+
+  Buffer* tmp = ctx->c;
+  ctx->c = ctx->arrays;
+  BufferMCopy(0, ctx->c, pre, varName, S("[] "));
+  visit(Child(node, 2), ctx);
+  visit(Child(node, 3), ctx);
+  ctx->c = tmp;
+
+  BufferMCopy(0, ctx->spans, ctx->globalDecl ? ctx->name_space : S(""),
+              varName, S("="), S("{"), pre, varName, S(",ARSIZE("),pre,varName, S(")}"));
+}
+
+void VisitRefAssignFunc(int node, Context* ctx) {
+
+  Span varName = ChildValue(node, 1);
+
+  AddToST(varName, ctx, IsRef);
+  EmitHeader(varName, ctx, IsRef);
+  
+
+  Buffer* tmp = ctx->c;
+  ctx->c = ctx->spans;
+  visit(Child(node, 1), ctx);
+  visit(Child(node, 2), ctx);
+  visit(Child(node, 3), ctx);
+  ctx->c = tmp;
+}
+
+void VisitRefAssignId(int node, Context* ctx) {
+
+  Span varName = ChildValue(node, 1);
+
+  AddToST(varName, ctx, IsRef);
+  EmitHeader(varName, ctx, IsRef);
   
   VisitChildren(node, ctx);
 }
 
+void VisitIndexer(int node, Context* ctx) {
+
+  Span varName = ChildValue(node, 1);
+  SymKind kind = SymKindFind(varName);
+
+  if(kind == SymGlobalRefVar || kind == SymLocalRefVar) {
+    BufferMCopy(0, ctx->c, ctx->typeName, S("SpanGet("));
+    visit(Child(node, 1), ctx);
+    BufferSCopy(0, ctx->c, ", ");
+    visit(Child(node, 3), ctx);
+    BufferSCopy(0, ctx->c, ");");
+  } else {
+    VisitChildren(node, ctx);
+  }
+}
 
 void VisitAssign(int node, Context* ctx) {
 
   Span varName = ChildValue(node, 1);
 
-  AddToST(varName, ctx, false);
-  EmitHeader(varName, ctx, false);
+  AddToST(varName, ctx, IsVar);
+  EmitHeader(varName, ctx, IsVar);
   
   VisitChildren(node, ctx);
 }
@@ -289,8 +396,29 @@ void visit(int node, Context* ctx) {
     case RefDeclAssign: // Assignment after declaration 
       VisitRefDeclAssign(node, ctx);
       break;
-    case RefAssign: // Assignment after declaration 
-      VisitRefAssign(node, ctx);
+    case RefAssignList: // Assignment after declaration 
+      VisitRefAssignList(node, ctx);
+      break;
+    case RefAssignId: // Assignment after declaration 
+      VisitRefAssignId(node, ctx);
+      break;
+    case RefAssignStr: // Assignment after declaration 
+      VisitRefAssignStr(node, ctx);
+      break;
+    case RefAssignFunc: // Assignment after declaration 
+      VisitRefAssignFunc(node, ctx);
+      break;
+    case RefAssignCommas: // Assignment after declaration 
+      visit(Child(node, 1), ctx);
+      BufferSCopy(' ', ctx->arrays, ",");
+      BufferSCopy(' ', ctx->spans, ",");
+      visit(Child(node, 3), ctx);
+      break;
+    case Indexer: // Maybe array, maybe ref
+      VisitIndexer(node, ctx);
+      break;
+    case RefType: // Maybe array, maybe ref
+      VisitRefType(node, ctx);
       break;
     case QualIdentifier:
       VisitQualIdentifier(node, ctx);

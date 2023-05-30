@@ -8,29 +8,23 @@
 #define LOADFACTOR 60
 #define MAXLEN (1 << MAXGLOBALEXP) * LOADFACTOR / 100
 
-#ifdef SYMTABLE_IMPL
-#define EXTERN
-#else
-#define EXTERN extern
-#endif
+extern Byte* SymGbl[];
+extern Byte* SymLcl[];
+extern Size  SymGLen[];
+extern Size  SymLLen[];
 
-EXTERN Byte* SymGbl[MAXGLOBALSYMBOLS];
-EXTERN Byte* SymLcl[MAXGLOBALSYMBOLS];
-EXTERN Size  SymGLen[MAXGLOBALSYMBOLS];
-EXTERN Size  SymLLen[MAXGLOBALSYMBOLS];
+extern Byte* SymLType[];
+extern Size  SymLTLen[];
+extern Byte* SymGType[];
+extern Size  SymGTLen[];
 
-EXTERN Byte* SymLType[MAXGLOBALSYMBOLS];
-EXTERN Size  SymLTLen[MAXGLOBALSYMBOLS];
-EXTERN Byte* SymGType[MAXGLOBALSYMBOLS];
-EXTERN Size  SymGTLen[MAXGLOBALSYMBOLS];
+extern SymKind SymGKind[];
+extern SymKind SymLKind[];
+extern int   NextLIndex;
 
-EXTERN SymKind SymGKind[MAXGLOBALSYMBOLS];
-EXTERN SymKind SymLKind[MAXGLOBALSYMBOLS];
-EXTERN int   NextLIndex;
-
-EXTERN int   ScopeStack[MAXSCOPES];
-EXTERN int   ScopeIndex;
-EXTERN int   SymGLength;
+extern int   ScopeStack[MAXSCOPES];
+extern int   ScopeIndex;
+extern int   SymGLength;
 
 inline void
 SymLAdd(Span s, SymKind t, Span typ) {
@@ -140,8 +134,27 @@ SymInit() {
 
 #ifdef SYMTABLE_IMPL
 
-void  PushScope();
-void  PopScope();
+Byte*   SymGbl[MAXGLOBALSYMBOLS];
+Size    SymGLen[MAXGLOBALSYMBOLS];
+SymKind SymGKind[MAXGLOBALSYMBOLS];
+Byte*   SymGType[MAXGLOBALSYMBOLS];
+Size    SymGTLen[MAXGLOBALSYMBOLS];
+
+int SymGLength;
+
+Byte*   SymLcl[MAXLOCALSYMBOLS];
+Size    SymLLen[MAXLOCALSYMBOLS];
+SymKind SymLKind[MAXLOCALSYMBOLS];
+Byte*   SymLType[MAXLOCALSYMBOLS];
+Size    SymLTLen[MAXLOCALSYMBOLS];
+
+int NextLIndex;
+
+int   ScopeStack[MAXSCOPES];
+int   ScopeIndex;
+
+void PushScope();
+void PopScope();
 
 void  SymLAdd(Span s, SymKind t, Span typ);
 int   SymLFind(Span sym);

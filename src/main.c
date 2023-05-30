@@ -18,7 +18,7 @@
 
 // Buffers for the header and code files for the generated code. Also for reading and writing the files.
 // TODO: need to malloc different ones instead of using same one
-Byte  _code[MAXFILESIZE], _header[MAXFILESIZE], _infile[MAXFILESIZE], _errors[MAXERRORBUF];
+Byte  _code[MAXFILESIZE], _header[MAXFILESIZE], _arrays[MAXSPANBUF], _spans[MAXSPANBUF], _infile[MAXFILESIZE], _errors[MAXERRORBUF];
 
 inline void
 die(const char *msg) {
@@ -158,13 +158,17 @@ int themain(int argc, char* argv[]) {
     Buffer c    = BufferInit(_code, MAXFILESIZE);
     Buffer h    = BufferInit(_header, MAXFILESIZE);
 
+    Buffer arrays    = BufferInit(_arrays, MAXSPANBUF);
+    Buffer spans     = BufferInit(_spans, MAXSPANBUF);
+
     Byte hbuf[512];
     Byte cbuf[512];
     Span hname = buildFileName(hbuf, sizeof(hbuf), filename, tempDirValue, ".h");
     Span cname = buildFileName(cbuf, sizeof(cbuf),filename, tempDirValue, ".c");
     Span nsp   = SpanExtractFileName('/', SpanFromString(filename));
 
-    Context ctx = { .c = &c, .h = &h, .e = &e, .filename = filename, .name_space = nsp };
+    Context ctx = { .c = &c, .h = &h, .e = &e, .arrays = &arrays, .spans = &spans,
+                    .filename = filename, .name_space = nsp };
 
     hpreamble(&h, hname);
     cpreamble(&c, hname);
