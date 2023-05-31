@@ -56,7 +56,7 @@
   #define GETLOC YYLTYPE* loc = yyget_lloc(scanner)
   #define NT(vv,...) vv = CreateNt(Generic, __VA_ARGS__); 
   #define NTT(kind,vv,...) vv = CreateNt(kind, __VA_ARGS__); 
-  #define EMPTY(vv) { GETLOC; vv = CreateToken(Token,"",0,loc->first_line,loc->first_column); }
+  #define EMPTY(vv) { GETLOC; vv = CreateToken(Empty,"",0,loc->first_line,loc->first_column); }
   #define ST(name,sym) AddGSym(scanner, name, sym)
   #define STQ(name,sym) AddGSymQuoted(scanner, name, sym)
 
@@ -103,7 +103,7 @@ decl_or_func_or_code
   : decl { NTT(GlobalDecl, $$, $1) }
   | func
   | ccode
-  | PBLOCK
+  | PBLOCK { NTT(PBlock,$$,$1) }
   ;
 
 type

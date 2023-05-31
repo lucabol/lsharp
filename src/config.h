@@ -21,6 +21,7 @@ typedef struct {
 #define NODETYPES \
   X(Generic) \
   X(Token) \
+  X(Empty) \
   X(PrimitiveType) \
   X(QualIdentifier) \
   X(WithLine) \
@@ -40,6 +41,7 @@ typedef struct {
   X(Indexer) \
   X(RefType) \
   X(CCode) \
+  X(PBlock) \
 
 #define X(n) n,
 typedef enum {

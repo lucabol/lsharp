@@ -10,6 +10,19 @@
 
 #ifdef SYMTABLE_IMPL
 #define EXTERN
+
+void  PushScope();
+void  PopScope();
+
+void  SymLAdd(Span s, SymKind t, Span typ);
+int   SymLFind(Span sym);
+void  SymGAdd(Span s, SymKind t, Span typ);
+int   SymGFind(Span sym);
+
+void  SymInit();
+
+SymKind  SymKindFind(Span s);
+
 #else
 #define EXTERN extern
 #endif
@@ -135,21 +148,5 @@ SymInit() {
   SymGLength = 0;
   NextLIndex = 0;
 }
-
-#endif
-
-#ifdef SYMTABLE_IMPL
-
-void  PushScope();
-void  PopScope();
-
-void  SymLAdd(Span s, SymKind t, Span typ);
-int   SymLFind(Span sym);
-void  SymGAdd(Span s, SymKind t, Span typ);
-int   SymGFind(Span sym);
-
-void  SymInit();
-
-SymKind  SymKindFind(Span s);
 
 #endif

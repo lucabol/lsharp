@@ -410,9 +410,13 @@ void visit(int node, Context* ctx) {
       break;
     case RefAssignCommas: // Assignment after declaration 
       visit(Child(node, 1), ctx);
-      BufferSCopy(' ', ctx->arrays, ",");
+      int afterComma = Child(node,3);
+      Kind k = NodeKind[afterComma]; 
+      if(k != RefAssignFunc) {
+        BufferSCopy(' ', ctx->arrays, ",");
+      }
       BufferSCopy(' ', ctx->spans, ",");
-      visit(Child(node, 3), ctx);
+      visit(afterComma, ctx);
       break;
     case Indexer: // Maybe array, maybe ref
       VisitIndexer(node, ctx);
@@ -427,6 +431,9 @@ void visit(int node, Context* ctx) {
       PushScope();
       VisitChildren(node, ctx);
       PopScope();
+      break;
+    case PBlock:
+      BufferMLCopy(0, ctx->c,S("\n"), GetSpan(node));
       break;
     case CCode:
       VisitCCode(node, ctx);

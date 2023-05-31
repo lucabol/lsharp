@@ -3,18 +3,31 @@
 
 #include "config.h"
 
-extern int    NodeId[];
-extern Kind   NodeKind[];
-extern char*  NodeName[];
-extern int    NodeLen[];
-extern int    NodeFirstChild[];
-extern int    NodeLine[];
-extern int    NodeColumn[];
+#ifdef AST_IMPL
+#define EXTERN
 
-extern int   NextChild;
-extern int   NextId;
+int   CreateNTA(Kind kind, int children[]);
+int   CreateToken(Kind kind, char* ptr, int len, int line, int column);
+Span  ChildValue(int node, int num);
+int   Child(int node, int num);
+void AstInit();
 
-extern int   NodeChildren[];
+#else
+#define EXTERN extern
+#endif
+
+EXTERN int    NodeId[MAXNODES];
+EXTERN Kind   NodeKind[MAXNODES];
+EXTERN char*  NodeName[MAXNODES];
+EXTERN int    NodeLen[MAXNODES];
+EXTERN int    NodeFirstChild[MAXNODES];
+EXTERN int    NodeLine[MAXNODES];
+EXTERN int    NodeColumn[MAXNODES];
+
+EXTERN int   NextChild;
+EXTERN int   NextId;
+
+EXTERN int   NodeChildren[MAXNODES];
 
 inline void
 AstInit() {
@@ -77,26 +90,3 @@ ChildValue(int node, int num) {
 }
 
 #endif // Header file
-
-#ifdef AST_IMPL
-
-int   NodeId[MAXNODES];
-Kind  NodeKind[MAXNODES];
-char* NodeName[MAXNODES];
-int   NodeLen[MAXNODES];
-int   NodeFirstChild[MAXNODES];
-int   NodeLine[MAXNODES];
-int   NodeColumn[MAXNODES];
-
-int   NodeChildren[MAXNODES * 10];
-
-int   NextChild;
-int   NextId;
-
-int   CreateNTA(Kind kind, int children[]);
-int   CreateToken(Kind kind, char* ptr, int len, int line, int column);
-Span  ChildValue(int node, int num);
-int   Child(int node, int num);
-void AstInit();
-
-#endif

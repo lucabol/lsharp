@@ -6,9 +6,12 @@ function clean {    # Clean things
 
 function build {    # Build stuff
   clean
+  pushd .. > /dev/null
+  ./Taskfile build
+  popd > /dev/null
   time dotnet build
   time dotnet publish
-  gcc -Ofast -x c Program.cs -oleibnizc
+  time gcc -Ofast -x c Program.cs -oleibnizc
   time ../lcs -O -oleibnizlcs ./Program.cs
 }
 
