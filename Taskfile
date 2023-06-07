@@ -3,7 +3,7 @@
 CSTARGETS=$(basename -s .cs -a $(ls ./cstest) | paste -sd " " -)
 CSTESTDIR="cstest"
 
-TARGETS=$(basename -s .cs -a $(ls ./test) | paste -sd " " -)
+TARGETS=$(basename -s .cs -a $(ls ./test/*.cs) | paste -sd " " -)
 
 TESTDIR="test"
 MULTITESTDIR="testmulti"

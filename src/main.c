@@ -126,7 +126,9 @@ int themain(int argc, char* argv[]) {
     Span cppname = buildFileName(cppbuf, sizeof(cppbuf), filename, tempDirValue, ".i");
 
     Size savedBuf = cppcmd.index;
-    BufferMCopy(' ', &cppcmd, SpanFromString(filename), S("-o"), cppname);
+    // This is very brittle. It removes some lines that the preprocessor inserts.
+    // Using -P has the strange side effect of removing newlines from the file.
+    BufferMCopy(' ', &cppcmd, SpanFromString(filename), S("| sed '/^#/d' > "), cppname);
     char* scmd = (char*)SpanTo1KTempString(BufferToSpan(&cppcmd));
     int cppResult = system(scmd);
     if(cppResult) {

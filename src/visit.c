@@ -50,11 +50,6 @@ void VisitToken(int node, Context* ctx) {
   char fch = sp.ptr[0];
   char spacing = ispunct(fch) ? 0 : ' '; 
 
-  // Manage preprocessor as normal tokens. Apparently they have to be at the start of a line.
-  if(fch == '#') {
-    BufferSLCopy(0,ctx->c,"");
-  }
-
   Span pre = S("");
 
 
@@ -368,7 +363,7 @@ void VisitIndexer(int node, Context* ctx) {
   // The indexing operator when using an imported symbol doesn't know the type (array or slice). It assumes slice.
   // This is clearly awkward. Either I need a global symbol table across all parsed files or remove support for arrays.
   int id = Child(node,1);
-  SymKind kind = SymGlobalSliceVar;
+  SymKind kind = SymGlobalRefVar;
 
   if(NodeKind[id] != QualIdentifier) { 
     Span varName = ChildValue(node, 1);
@@ -392,7 +387,7 @@ void VisitIndexerS(int node, Context* ctx) {
   // The indexing operator when using an imported symbol doesn't know the type (array or slice). It assumes slice.
   // This is clearly awkward. Either I need a global symbol table across all parsed files or remove support for arrays.
   int id = Child(node,1);
-  SymKind kind = SymGlobalSliceVar;
+  SymKind kind = SymGlobalRefVar;
 
   if(NodeKind[id] != QualIdentifier) { 
     Span varName = ChildValue(node, 1);

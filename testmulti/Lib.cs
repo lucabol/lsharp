@@ -1,6 +1,6 @@
 using math.h;
 
-int Ar[] = { 1, -1 };
+int[] Ar = { 1, -1 };
 
 nint ni = 2;
 double dd = 3.0;
