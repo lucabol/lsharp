@@ -54,7 +54,7 @@ IS		(u|U|l|L)*
 
 "//".*      { /* consume //-comment */ }
 
-"bool"|"byte"|"sbyte"|"char"|"double"|"float"|"int"|"uint"|"unint"|"nint"|"long"|"ulong"|"short"|"ushort" { return PTYPE; }
+"bool"|"byte"|"sbyte"|"char"|"double"|"float"|"int"|"uint"|"unint"|"nint"|"long"|"ulong"|"short"|"ushort"|"void" { return PTYPE; }
 
 ".."			  { return(REFSYM); }
 "namespace"	{ return(NAMESPACE); }
@@ -73,8 +73,10 @@ IS		(u|U|l|L)*
 "sizeof"		{ return(SIZEOF); }
 "switch"		{ return(SWITCH); }
 "while"			{ return(WHILE); }
-
 "new"       { return(NEW); }
+
+"___len"     { return(___LEN);}
+"___ptr"     { return(___PTR);}
 
 {L}({L}|{D})*		  { return(check_type()); }
 

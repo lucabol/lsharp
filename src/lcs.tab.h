@@ -100,12 +100,14 @@ extern int yydebug;
     REFSYM = 300,                  /* ".."  */
     PBLOCK = 301,                  /* "#if .. #endif"  */
     PTYPE = 302,                   /* "primitive type"  */
-    CAST = 308,                    /* CAST  */
-    NEG = 311,                     /* NEG  */
-    PREINCR = 312,                 /* PREINCR  */
-    PREDECR = 313,                 /* PREDECR  */
-    POSTINCR = 320,                /* POSTINCR  */
-    POSTDECR = 321                 /* POSTDECR  */
+    ___LEN = 303,                  /* "__len"  */
+    ___PTR = 304,                  /* "___ptr"  */
+    CAST = 310,                    /* CAST  */
+    NEG = 313,                     /* NEG  */
+    PREINCR = 314,                 /* PREINCR  */
+    PREDECR = 315,                 /* PREDECR  */
+    POSTINCR = 322,                /* POSTINCR  */
+    POSTDECR = 323                 /* POSTDECR  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif

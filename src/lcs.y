@@ -21,7 +21,7 @@
 
 %define lr.type ielr
 %glr-parser
-%expect 333
+%expect 343
 
 %token NAMESPACE "namespace" USING "using" IDENTIFIER "identifier" CONSTANT "constant" STRING_LITERAL "string literal" SIZEOF "sizeof"
 %token INC_OP "++" DEC_OP "--" LEFT_OP "<<" RIGHT_OP ">>" LE_OP "<=" GE_OP ">=" EQ_OP "==" NE_OP "!="
@@ -32,7 +32,7 @@
 %token CASE "case" DEFAULT "default" IF "if" ELSE "else" SWITCH "switch" WHILE "while" DO "do" FOR "for" GOTO "goto" CONTINUE "continue" BREAK "break" RETURN "return"
 
 %token NEW "new" CCODE "c code" REFSYM ".." PBLOCK "#if .. #endif"
-%token PTYPE "primitive type"
+%token PTYPE "primitive type" ___LEN "__len" ___PTR "___ptr"
 
 %left ','
 %right '=' "+=" "-=" "*=" ">>=" "<<=" "&=" "^=" "|="
@@ -47,7 +47,7 @@
 %left ">>" "<<"
 %left '-' '+' '%'
 %left '*' '/'
-%right "sizeof" CAST "!" "~" NEG PREINCR PREDECR
+%right "sizeof" CAST "!" "~" NEG PREINCR PREDECR ___LEN ___PTR
 %left "." "[]" "[" "]" "(" ")" POSTINCR POSTDECR
 
 %code {
@@ -272,7 +272,9 @@ expr
   | "--" expr %prec PREDECR %dprec 13 { NT($$,$1,$2) }
   | '&' expr                %dprec 13 { GETLOC; yyerror(loc, scanner, REFERENCES);}
   | expr "++" %prec POSTINCR %dprec 13 { NT($$,$1,$2) }
-  | expr"--"  %prec POSTDECR %dprec 13 { NT($$,$1,$2) }
+  | expr "--"  %prec POSTDECR %dprec 13 { NT($$,$1,$2) }
+  | ___LEN expr %prec POSTDECR %dprec 13 { NTT(RefOp, $$,$1,$2) }
+  | ___PTR expr %prec POSTDECR %dprec 13 { NTT(RefOp, $$,$1,$2) }
   ;
 
 %%

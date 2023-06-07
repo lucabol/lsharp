@@ -302,9 +302,22 @@ void VisitRefAssignStr(int node, Context* ctx) {
   ctx->c = tmp;
 
   BufferMCopy(0, ctx->spans, ctx->globalDecl ? ctx->name_space : S(""),
-              varName, S("="), S("{"), pre, varName, S(",ARSIZE("),pre,varName, S(")}"));
+              varName, S("="), S("{"), pre, varName, S(",ARSIZE("),pre,varName, S(") - 1}"));
 }
 
+void VisitRefOp(int node, Context* ctx) {
+  BufferSCopy(0, ctx->c, "(");
+  visit(Child(node,2), ctx);
+  BufferSCopy(0, ctx->c, ")");
+  Span op = ChildValue(node,1);
+  if(SpanEqual(op, S("___len"))) {
+    BufferSCopy(0, ctx->c, ".len");
+  } else if(SpanEqual(op, S("___ptr"))) {
+    BufferSCopy(0, ctx->c, ".ptr");
+  } else {
+    ERR(Child(node,1), "Unknown slice operator.");
+  }
+}
 void VisitRefAssignFunc(int node, Context* ctx) {
 
   Span varName = ChildValue(node, 1);
@@ -517,6 +530,9 @@ void visit(int node, Context* ctx) {
       break;
     case CCode:
       VisitCCode(node, ctx);
+      break;
+    case RefOp:
+      VisitRefOp(node, ctx);
       break;
     }
 }

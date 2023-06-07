@@ -39,6 +39,7 @@ typedef struct {
   X(RefAssignStr) \
   X(RefAssignFunc) \
   X(RefAssignConst) \
+  X(RefOp) \
   X(Indexer) \
   X(IndexerS) \
   X(RefType) \
