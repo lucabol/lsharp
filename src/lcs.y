@@ -21,7 +21,7 @@
 
 %define lr.type ielr
 %glr-parser
-%expect 321
+%expect 333
 
 %token NAMESPACE "namespace" USING "using" IDENTIFIER "identifier" CONSTANT "constant" STRING_LITERAL "string literal" SIZEOF "sizeof"
 %token INC_OP "++" DEC_OP "--" LEFT_OP "<<" RIGHT_OP ">>" LE_OP "<=" GE_OP ">=" EQ_OP "==" NE_OP "!="
@@ -103,7 +103,7 @@ decl_or_func_or_code
   : decl { NTT(GlobalDecl, $$, $1) }
   | func
   | ccode
-  | PBLOCK { NTT(PBlock,$$,$1) }
+  | PBLOCK
   ;
 
 type
@@ -136,6 +136,7 @@ refassign
   | IDENTIFIER '=' funccall               { NTT(RefAssignFunc,$$,$1,$2,$3) }
   | IDENTIFIER '=' IDENTIFIER             { NTT(RefAssignFunc,$$,$1,$2,$3) }
   | IDENTIFIER '=' IDENTIFIER '[' expr REFSYM expr ']'   { NTT(RefAssignId,$$,$1,$2,$3,$4,$5,$6,$7,$8) }
+  | IDENTIFIER '[' expr ']'               { NTT(RefAssignConst,$$,$1,$2,$3,$4) }
   ;
 
 slicedecl
@@ -259,8 +260,10 @@ expr
   | expr '*' expr          %dprec 12 { NT($$,$1,$2,$3) }
   | expr '/' expr          %dprec 12 { NT($$,$1,$2,$3) }
   | '(' type ')' expr      %dprec 13 { NT($$,$1,$2,$3,$4) }
-  | IDENTIFIER '[' expr ']' %dprec 13 { NTT(Indexer, $$,$1,$2,$3,$4) }
-  | qualidentifier '[' expr ']' %dprec 13 { NT($$,$1,$2,$3,$4) }
+  | IDENTIFIER '[' expr ']' '=' expr %dprec 13      { NTT(IndexerS, $$,$1,$2,$3,$4,$5,$6) }
+  | IDENTIFIER '[' expr ']' %dprec 13               { NTT(Indexer, $$,$1,$2,$3,$4) }
+  | qualidentifier '[' expr ']' '=' expr %dprec 13  { NTT(IndexerS, $$,$1,$2,$3,$4,$5,$6) }
+  | qualidentifier '[' expr ']' %dprec 13           { NTT(Indexer,$$,$1,$2,$3,$4) }
   | '-' expr %prec NEG     %dprec 13 { NT($$,$1,$2) }
   | '+' expr %prec NEG     %dprec 13 { NT($$,$1,$2) }
   | '!' expr %prec '!'     %dprec 13 { NT($$,$1,$2) }

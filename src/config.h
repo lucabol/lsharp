@@ -38,10 +38,11 @@ typedef struct {
   X(RefAssignId) \
   X(RefAssignStr) \
   X(RefAssignFunc) \
+  X(RefAssignConst) \
   X(Indexer) \
+  X(IndexerS) \
   X(RefType) \
   X(CCode) \
-  X(PBlock) \
 
 #define X(n) n,
 typedef enum {
@@ -113,6 +114,10 @@ typedef struct {
 // Switching C grammar features off
 #define POINTERS    "you can't use pointers - use indexed slices instead."
 #define REFERENCES  "you can't use references - use indexed slices instead."
+
+// CPP
+#define CPP      "cpp"
+#define CPPFLAGS ""
 
 // C compiler options (in gcc terms)
 #define COMP   "gcc"

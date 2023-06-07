@@ -19,6 +19,10 @@
 #define TSPAN(T) typedef struct {T* ptr;int32_t len;} T##Span; \
   static inline T T##SpanGet(T##Span sp, int32_t idx) { if(idx < 0 || idx >= sp.len) TRAP; return sp.ptr[idx];} \
   static inline void T##SpanSet(T##Span sp, int32_t idx, T value) { if(idx < 0 || idx >= sp.len) TRAP; sp.ptr[idx] = value;} \
+  static inline T##Span T##SpanSlice(T##Span sp, int32_t s, int32_t e) \
+    { if(s < 0 || e >= sp.len || e < s) TRAP; return (T##Span) { &sp.ptr[s], e - s + 1 }; } \
+  static inline T##Span T##SpanArr(T arr[], int32_t s, int32_t e) \
+    { return (T##Span) { &arr[s], e - s + 1 }; }
 
 TSPAN(bool);
 TSPAN(uint8_t);

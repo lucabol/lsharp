@@ -22,28 +22,28 @@ int   SymGFind(Span sym);
 void  SymInit();
 
 SymKind  SymKindFind(Span s);
+Span     SymTypeFind(Span s);
 
 #else
 #define EXTERN extern
 #endif
 
-EXTERN Byte* SymGbl[MAXGLOBALSYMBOLS];
-EXTERN Byte* SymLcl[MAXGLOBALSYMBOLS];
-EXTERN Size  SymGLen[MAXGLOBALSYMBOLS];
-EXTERN Size  SymLLen[MAXGLOBALSYMBOLS];
-
-EXTERN Byte* SymLType[MAXGLOBALSYMBOLS];
-EXTERN Size  SymLTLen[MAXGLOBALSYMBOLS];
-EXTERN Byte* SymGType[MAXGLOBALSYMBOLS];
-EXTERN Size  SymGTLen[MAXGLOBALSYMBOLS];
-
+EXTERN Byte*   SymGbl[MAXGLOBALSYMBOLS];
+EXTERN Size    SymGLen[MAXGLOBALSYMBOLS];
+EXTERN Byte*   SymGType[MAXGLOBALSYMBOLS];
+EXTERN Size    SymGTLen[MAXGLOBALSYMBOLS];
 EXTERN SymKind SymGKind[MAXGLOBALSYMBOLS];
+EXTERN int     SymGLength;
+
+EXTERN Byte*   SymLcl[MAXGLOBALSYMBOLS];
+EXTERN Size    SymLLen[MAXGLOBALSYMBOLS];
+EXTERN Byte*   SymLType[MAXGLOBALSYMBOLS];
+EXTERN Size    SymLTLen[MAXGLOBALSYMBOLS];
 EXTERN SymKind SymLKind[MAXGLOBALSYMBOLS];
-EXTERN int   NextLIndex;
+EXTERN int     NextLIndex;
 
 EXTERN int   ScopeStack[MAXSCOPES];
 EXTERN int   ScopeIndex;
-EXTERN int   SymGLength;
 
 inline void
 SymLAdd(Span s, SymKind t, Span typ) {
@@ -135,6 +135,15 @@ SymKindFind(Span s) {
     return SymLKind[v];
   }
   return SymGKind[SymGFind(s)];
+}
+
+inline Span
+SymTypeFind(Span s) {
+  int v;
+  if((v = SymLFind(s)) != -1) {
+    return SPAN(SymLType[v],SymLTLen[v]);
+  }
+  return SPAN(SymGType[v],SymGTLen[v]);
 }
 
 inline void

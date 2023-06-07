@@ -41,7 +41,6 @@ IS		(u|U|l|L)*
 
 `[^`]*`     { return(CCODE);}
 
-
 <INITIAL>{
   "/*"      BEGIN(IN_COMMENT);
 }
@@ -51,15 +50,7 @@ IS		(u|U|l|L)*
   "*"       // eat the lone star
 }
 
-
-<INITIAL>{
-  "#if"                                { BEGIN(CPPIF); return(PBLOCK);}
-}
-<CPPIF>{
-  "#endif"                             { BEGIN(INITIAL); } 
-  (.|\n)*                              { return(PBLOCK); }
-}
-
+^#.*          {}
 
 "//".*      { /* consume //-comment */ }
 

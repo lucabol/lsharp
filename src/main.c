@@ -79,6 +79,11 @@ int themain(int argc, char* argv[]) {
   int k, index;
   char* tempDirValue = "/tmp";
 
+  Byte _cppcmd[MAXCMDLINE];
+  Buffer cppcmd = BufferInit(_cppcmd, MAXCMDLINE);
+  BufferSCopy(' ', &cppcmd, CPP);
+  BufferSCopy(' ', &cppcmd, CPPFLAGS);
+
   Byte _cmd[MAXCMDLINE];
   Buffer cmd = BufferInit(_cmd, MAXCMDLINE);
   BufferSCopy(' ', &cmd, COMP);
@@ -114,14 +119,26 @@ int themain(int argc, char* argv[]) {
 
   for (index = optind; index < argc; index++) {
     
-    SymInit();
-    AstInit();
-
-    Buffer file = BufferInit(_infile, MAXFILESIZE);
-
     char* filename = argv[index];
 
+    // Run preprocessor on input file
+    Byte cppbuf[512];
+    Span cppname = buildFileName(cppbuf, sizeof(cppbuf), filename, tempDirValue, ".i");
+
+    Size savedBuf = cppcmd.index;
+    BufferMCopy(' ', &cppcmd, SpanFromString(filename), S("-o"), cppname);
+    char* scmd = (char*)SpanTo1KTempString(BufferToSpan(&cppcmd));
+    int cppResult = system(scmd);
+    if(cppResult) {
+      die("Error running the preprocessor");
+    }
+    cppcmd.index = savedBuf;
+    
+    Buffer file = BufferInit(_infile, MAXFILESIZE);
     Buffer e    = BufferInit(_errors, MAXERRORBUF);
+
+    SymInit();
+    AstInit();
 
     Env env = {
       .startNode = -1,
@@ -129,7 +146,8 @@ int themain(int argc, char* argv[]) {
       .e = &e,
     };
 
-    SpanResult sr = OsSlurp(filename, MAXFILESIZE, &file);
+    char* preprocFileName = (char*)SpanTo1KTempString(cppname);
+    SpanResult sr = OsSlurp(preprocFileName, MAXFILESIZE, &file);
     if(sr.error) {
       die(sr.error);
     }
@@ -161,11 +179,13 @@ int themain(int argc, char* argv[]) {
     Buffer arrays    = BufferInit(_arrays, MAXSPANBUF);
     Buffer spans     = BufferInit(_spans, MAXSPANBUF);
 
-    Byte hbuf[512];
-    Byte cbuf[512];
-    Span hname = buildFileName(hbuf, sizeof(hbuf), filename, tempDirValue, ".h");
-    Span cname = buildFileName(cbuf, sizeof(cbuf),filename, tempDirValue, ".c");
-    Span nsp   = SpanExtractFileName('/', SpanFromString(filename));
+    Byte hbuf  [512];
+    Byte cbuf  [512];
+
+    Span hname   = buildFileName(hbuf,   sizeof(hbuf), filename, tempDirValue, ".h");
+    Span cname   = buildFileName(cbuf,   sizeof(cbuf),filename, tempDirValue, ".c");
+
+    Span nsp     = SpanExtractFileName('/', SpanFromString(filename));
 
     Context ctx = { .c = &c, .h = &h, .e = &e, .arrays = &arrays, .spans = &spans,
                     .filename = filename, .name_space = nsp };
@@ -189,7 +209,6 @@ int themain(int argc, char* argv[]) {
       BufferMCopy(' ', &cmd, cname);
     }
   }
-
 
   if(tempDirValue) {
     char* scmd = (char*)SpanTo1KTempString(BufferToSpan(&cmd));

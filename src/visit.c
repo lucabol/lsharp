@@ -47,7 +47,13 @@ void VisitToken(int node, Context* ctx) {
 
   Span sp = GetSpan(node);
 
-  char spacing = ispunct(sp.ptr[0]) ? 0 : ' '; 
+  char fch = sp.ptr[0];
+  char spacing = ispunct(fch) ? 0 : ' '; 
+
+  // Manage preprocessor as normal tokens. Apparently they have to be at the start of a line.
+  if(fch == '#') {
+    BufferSLCopy(0,ctx->c,"");
+  }
 
   Span pre = S("");
 
@@ -259,6 +265,26 @@ void VisitRefAssignList(int node, Context* ctx) {
               varName, S("="), S("{"), pre, varName, S(",ARSIZE("),pre,varName, S(")}"));
 }
 
+void VisitRefAssignConst(int node, Context* ctx) {
+
+  Span varName = ChildValue(node, 1);
+
+  AddToST(varName, ctx, IsRef);
+  EmitHeader(varName, ctx, IsRef);
+  
+  Span pre = S(" __Buf");
+
+  Buffer* tmp = ctx->c;
+  ctx->c = ctx->arrays;
+  BufferMCopy(0, ctx->c, pre, varName, S("[ "));
+  visit(Child(node, 3), ctx);
+  BufferSCopy(0, ctx->c," ]");
+  ctx->c = tmp;
+
+  BufferMCopy(0, ctx->spans, ctx->globalDecl ? ctx->name_space : S(""),
+              varName, S("="), S("{"), pre, varName, S(",ARSIZE("),pre,varName, S(")}"));
+}
+
 void VisitRefAssignStr(int node, Context* ctx) {
 
   Span varName = ChildValue(node, 1);
@@ -286,7 +312,6 @@ void VisitRefAssignFunc(int node, Context* ctx) {
   AddToST(varName, ctx, IsRef);
   EmitHeader(varName, ctx, IsRef);
   
-
   Buffer* tmp = ctx->c;
   ctx->c = ctx->spans;
   visit(Child(node, 1), ctx);
@@ -297,18 +322,45 @@ void VisitRefAssignFunc(int node, Context* ctx) {
 
 void VisitRefAssignId(int node, Context* ctx) {
 
-  Span varName = ChildValue(node, 1);
+  Span target = ChildValue(node, 1);
 
-  AddToST(varName, ctx, IsRef);
-  EmitHeader(varName, ctx, IsRef);
+  AddToST(target, ctx, IsRef);
+  EmitHeader(target, ctx, IsRef);
   
-  VisitChildren(node, ctx);
+  Span source  = ChildValue(node, 3);
+  SymKind kind = SymKindFind(source);
+
+  Buffer* tmp = ctx->c;
+  ctx->c = ctx->spans;
+  if(kind == SymGlobalSliceVar || kind == SymLocalSliceVar) {
+    BufferMCopy(0, ctx->c, target, S(" = "), ctx->typeName, S("SpanArr("), source, S(", "));
+    visit(Child(node, 5), ctx);
+    BufferMCopy(0, ctx->c, S(", "));
+    visit(Child(node, 7), ctx);
+    BufferMCopy(0, ctx->c, S(" )"));
+  } else if(kind == SymGlobalRefVar || kind == SymLocalRefVar) {
+    BufferMCopy(0, ctx->c, target, S(" = "), ctx->typeName, S("SpanSlice("), source, S(", "));
+    visit(Child(node, 5), ctx);
+    BufferMCopy(0, ctx->c, S(", "));
+    visit(Child(node, 7), ctx);
+    BufferMCopy(0, ctx->c, S(" )"));
+  } else {
+    ERR(node, "Trying to slice a non-sliceable type.");
+  }
+  ctx->c = tmp;
 }
 
 void VisitIndexer(int node, Context* ctx) {
 
-  Span varName = ChildValue(node, 1);
-  SymKind kind = SymKindFind(varName);
+  // The indexing operator when using an imported symbol doesn't know the type (array or slice). It assumes slice.
+  // This is clearly awkward. Either I need a global symbol table across all parsed files or remove support for arrays.
+  int id = Child(node,1);
+  SymKind kind = SymGlobalSliceVar;
+
+  if(NodeKind[id] != QualIdentifier) { 
+    Span varName = ChildValue(node, 1);
+    kind = SymKindFind(varName);
+  }
 
   if(kind == SymGlobalRefVar || kind == SymLocalRefVar) {
     BufferMCopy(0, ctx->c, ctx->typeName, S("SpanGet("));
@@ -316,11 +368,36 @@ void VisitIndexer(int node, Context* ctx) {
     BufferSCopy(0, ctx->c, ", ");
     visit(Child(node, 3), ctx);
     BufferSCopy(0, ctx->c, ")");
+
   } else {
     VisitChildren(node, ctx);
   }
 }
 
+void VisitIndexerS(int node, Context* ctx) {
+
+  // The indexing operator when using an imported symbol doesn't know the type (array or slice). It assumes slice.
+  // This is clearly awkward. Either I need a global symbol table across all parsed files or remove support for arrays.
+  int id = Child(node,1);
+  SymKind kind = SymGlobalSliceVar;
+
+  if(NodeKind[id] != QualIdentifier) { 
+    Span varName = ChildValue(node, 1);
+    kind = SymKindFind(varName);
+  }
+
+  if(kind == SymGlobalRefVar || kind == SymLocalRefVar) {
+    BufferMCopy(0, ctx->c, ctx->typeName, S("SpanSet("));
+    visit(Child(node, 1), ctx);
+    BufferSCopy(0, ctx->c, ", ");
+    visit(Child(node, 3), ctx);
+    BufferSCopy(0, ctx->c, ", ");
+    visit(Child(node, 6), ctx);
+    BufferSCopy(0, ctx->c, ")");
+  } else {
+    VisitChildren(node, ctx);
+  }
+}
 void VisitAssign(int node, Context* ctx) {
 
   Span varName = ChildValue(node, 1);
@@ -368,7 +445,7 @@ void visit(int node, Context* ctx) {
       PrintPrimitiveType(node, ctx);
       break;
     case WithLine: // Insert file and line numbers (or just newlines)
-      // line = NodeLine[node] - 1;
+      // line = NodeLine[node];
       // BufferSLCopy(0, ctx->c, "\n", "#line ", itoa(line), " \"", ctx->filename, "\"");
       BufferSLCopy(0, ctx->c, "");
       VisitChildren(node, ctx);
@@ -399,6 +476,9 @@ void visit(int node, Context* ctx) {
     case RefAssignList: // Assignment after declaration 
       VisitRefAssignList(node, ctx);
       break;
+    case RefAssignConst: // Assignment after declaration 
+      VisitRefAssignConst(node, ctx);
+      break;
     case RefAssignId: // Assignment after declaration 
       VisitRefAssignId(node, ctx);
       break;
@@ -421,6 +501,9 @@ void visit(int node, Context* ctx) {
     case Indexer: // Maybe array, maybe ref
       VisitIndexer(node, ctx);
       break;
+    case IndexerS: // Maybe array, maybe ref
+      VisitIndexerS(node, ctx);
+      break;
     case RefType: // Maybe array, maybe ref
       VisitRefType(node, ctx);
       break;
@@ -431,9 +514,6 @@ void visit(int node, Context* ctx) {
       PushScope();
       VisitChildren(node, ctx);
       PopScope();
-      break;
-    case PBlock:
-      BufferMLCopy(0, ctx->c,S("\n"), GetSpan(node));
       break;
     case CCode:
       VisitCCode(node, ctx);

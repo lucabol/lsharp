@@ -9,15 +9,21 @@ function build {    # Build stuff
   pushd .. > /dev/null
   ./Taskfile build
   popd > /dev/null
-  time dotnet build
+  echo -n BUILD DOTNET
+  time dotnet build  --nologo -v q
+  echo BUILD DOTNETAOT
   time dotnet publish
+  echo -n BUILD GCC
   time gcc -Ofast -x c Program.cs -oleibnizc
+  echo -n BUILD LCS
   time ../lcs -O -oleibnizlcs ./Program.cs
+  cp /home/lucabol/dev/lsharp/dotnetaot/bin/Release/net8.0/linux-x64/publish/dotnetaot ./leibnizcdotnet
+  echo SIZES
+  exa -lrs size leib*
 }
 
-function run {    # Runs something
-  build
-  
+function perf {    # Perf test
+  hyperfine -i ./leibnizc ./leibnizcdotnet ./leibnizlcs 
 }
 
 function help {     # Prints help
