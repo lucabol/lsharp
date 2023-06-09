@@ -164,6 +164,8 @@ void ExtractType(int node, Context* ctx) {
 
   if(nk == PrimitiveType) {
     ctx->typeName = TypeConvert(GetSpan(node));
+  } else if(nk == Token) { // Got to be the string type
+    ctx->typeName = S("String");
   } else {
     ExtractType(Child(node,1), ctx);
   }
@@ -214,8 +216,8 @@ void VisitRefDeclAssign(int node, Context* ctx) {
   BufferDealloc(ctx->arrays, ctx->arrays->index);
   BufferDealloc(ctx->spans,  ctx->spans->index);
 
-  visit(Child(node, 4), ctx);
-  visit(Child(node, 5), ctx);
+  visit(Child(node, 2), ctx);
+  visit(Child(node, 3), ctx);
 
   if(ctx->arrays->index > 0) {
     BufferMCopy(' ',ctx->c,ctx->typeName);
@@ -313,6 +315,16 @@ void VisitRefOp(int node, Context* ctx) {
     ERR(Child(node,1), "Unknown slice operator.");
   }
 }
+void VisitString(int node, Context* ctx) {
+  if(SpanEqual(ctx->typeName, S("String"))) {
+    BufferSCopy(0, ctx->c, "CharSpanFromLit(");
+    visit(Child(node,1), ctx);
+    BufferSCopy(0, ctx->c, ")");
+  } else {
+    visit(Child(node,1), ctx);
+  }
+}
+
 void VisitRefAssignFunc(int node, Context* ctx) {
 
   Span varName = ChildValue(node, 1);
@@ -528,6 +540,9 @@ void visit(int node, Context* ctx) {
       break;
     case RefOp:
       VisitRefOp(node, ctx);
+      break;
+    case String:
+      VisitString(node, ctx);
       break;
     }
 }

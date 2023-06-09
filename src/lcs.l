@@ -56,6 +56,7 @@ IS		(u|U|l|L)*
 
 "bool"|"byte"|"sbyte"|"char"|"double"|"float"|"int"|"uint"|"unint"|"nint"|"long"|"ulong"|"short"|"ushort"|"void" { return PTYPE; }
 
+"String"    { return(STRING); }
 ".."			  { return(REFSYM); }
 "namespace"	{ return(NAMESPACE); }
 "using"			{ return(USING); }

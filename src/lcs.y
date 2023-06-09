@@ -32,7 +32,7 @@
 %token CASE "case" DEFAULT "default" IF "if" ELSE "else" SWITCH "switch" WHILE "while" DO "do" FOR "for" GOTO "goto" CONTINUE "continue" BREAK "break" RETURN "return"
 
 %token NEW "new" CCODE "c code" REFSYM ".." PBLOCK "#if .. #endif"
-%token PTYPE "primitive type" ___LEN "__len" ___PTR "___ptr"
+%token PTYPE "primitive type" ___LEN "__len" ___PTR "___ptr" STRING "String"
 
 %left ','
 %right '=' "+=" "-=" "*=" ">>=" "<<=" "&=" "^=" "|="
@@ -109,10 +109,11 @@ decl_or_func_or_code
 type
   : valuetype
   | reftype
+  | STRING
   ;
 
 reftype
-  : valuetype '[' ']' { NTT(RefType,$$,$1,$2,$3) }
+  : type '[' ']' { NTT(RefType,$$,$1,$2,$3) }
   ;
 
 decl
@@ -122,7 +123,7 @@ decl
   ;
 
 refdecl
-  : valuetype '[' ']' refassign refassign_list ';'  { NTT(RefDeclAssign,$$,$1,$2,$3,$4,$5,$6) }
+  : reftype refassign refassign_list ';'  { NTT(RefDeclAssign,$$,$1,$2,$3,$4) }
   ;
 
 refassign_list
@@ -229,7 +230,7 @@ qualidentifier
 
 expr
   : CONSTANT
-  | STRING_LITERAL
+  | STRING_LITERAL { NTT(String,$$,$1) }
   | IDENTIFIER
   | funccall
   | qualidentifier

@@ -44,6 +44,7 @@ typedef struct {
   X(IndexerS) \
   X(RefType) \
   X(CCode) \
+  X(String) \
 
 #define X(n) n,
 typedef enum {

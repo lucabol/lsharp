@@ -102,12 +102,13 @@ extern int yydebug;
     PTYPE = 302,                   /* "primitive type"  */
     ___LEN = 303,                  /* "__len"  */
     ___PTR = 304,                  /* "___ptr"  */
-    CAST = 310,                    /* CAST  */
-    NEG = 313,                     /* NEG  */
-    PREINCR = 314,                 /* PREINCR  */
-    PREDECR = 315,                 /* PREDECR  */
-    POSTINCR = 322,                /* POSTINCR  */
-    POSTDECR = 323                 /* POSTDECR  */
+    STRING = 305,                  /* "String"  */
+    CAST = 311,                    /* CAST  */
+    NEG = 314,                     /* NEG  */
+    PREINCR = 315,                 /* PREINCR  */
+    PREDECR = 316,                 /* PREDECR  */
+    POSTINCR = 323,                /* POSTINCR  */
+    POSTDECR = 324                 /* POSTDECR  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
