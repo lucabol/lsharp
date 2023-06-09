@@ -316,13 +316,9 @@ void VisitRefOp(int node, Context* ctx) {
   }
 }
 void VisitString(int node, Context* ctx) {
-  if(SpanEqual(ctx->typeName, S("String"))) {
-    BufferSCopy(0, ctx->c, "CharSpanFromLit(");
-    visit(Child(node,1), ctx);
-    BufferSCopy(0, ctx->c, ")");
-  } else {
-    visit(Child(node,1), ctx);
-  }
+  BufferSCopy(0, ctx->c, "CharSpanFromLit(");
+  visit(Child(node,1), ctx);
+  BufferSCopy(0, ctx->c, ")");
 }
 
 void VisitRefAssignFunc(int node, Context* ctx) {

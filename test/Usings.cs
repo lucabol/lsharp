@@ -9,6 +9,6 @@ int a = 0, b = 1;
 TEST;
 
 int main() {
-  stdio.printf("%d",a);
+  stdio.printf(___ptr "%d", a);
   return a + b - a - b;
 }
