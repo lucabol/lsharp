@@ -366,54 +366,52 @@ void VisitRefAssignId(int node, Context* ctx) {
   ctx->c = tmp;
 }
 
-void VisitIndexer(int node, Context* ctx) {
-
+void VisitIdx(int node, Context* ctx, bool withAssign) {
   // The indexing operator when using an imported symbol doesn't know the type (array or slice). It assumes slice.
   // This is clearly awkward. Either I need a global symbol table across all parsed files or remove support for arrays.
   int id = Child(node,1);
+  Span varName = ChildValue(node, 1);
+  Span type = SymTypeFind(varName);
+
   SymKind kind = SymGlobalRefVar;
 
   if(NodeKind[id] != QualIdentifier) { 
-    Span varName = ChildValue(node, 1);
     kind = SymKindFind(varName);
   }
 
-  if(kind == SymGlobalRefVar || kind == SymLocalRefVar) {
-    BufferMCopy(0, ctx->c, ctx->typeName, S("SpanGet("));
+  bool isString = SpanEqual(type,S("String"));
+  bool needsAccessors = kind == SymGlobalRefVar || kind == SymLocalRefVar || isString; 
+
+  if(needsAccessors) {
+    if(isString && (kind == SymGlobalVar || kind == SymLocalVar)) {
+      BufferSCopy(0, ctx->c, withAssign ? "charSpanSet(" : "charSpanGet(");
+    } else {
+      BufferMCopy(0, ctx->c, ctx->typeName, withAssign ? S("SpanSet(") : S("SpanGet("));
+    }
     visit(Child(node, 1), ctx);
     BufferSCopy(0, ctx->c, ", ");
     visit(Child(node, 3), ctx);
-    BufferSCopy(0, ctx->c, ")");
-
+    if(withAssign) {
+      BufferSCopy(0, ctx->c, ", ");
+      visit(Child(node, 6), ctx);
+      BufferSCopy(0, ctx->c, ")");
+    } else {
+      BufferSCopy(0, ctx->c, ")");
+    }
   } else {
     VisitChildren(node, ctx);
   }
+}
+void VisitIndexer(int node, Context* ctx) {
+
+  VisitIdx(node, ctx, false);
 }
 
 void VisitIndexerS(int node, Context* ctx) {
 
-  // The indexing operator when using an imported symbol doesn't know the type (array or slice). It assumes slice.
-  // This is clearly awkward. Either I need a global symbol table across all parsed files or remove support for arrays.
-  int id = Child(node,1);
-  SymKind kind = SymGlobalRefVar;
-
-  if(NodeKind[id] != QualIdentifier) { 
-    Span varName = ChildValue(node, 1);
-    kind = SymKindFind(varName);
-  }
-
-  if(kind == SymGlobalRefVar || kind == SymLocalRefVar) {
-    BufferMCopy(0, ctx->c, ctx->typeName, S("SpanSet("));
-    visit(Child(node, 1), ctx);
-    BufferSCopy(0, ctx->c, ", ");
-    visit(Child(node, 3), ctx);
-    BufferSCopy(0, ctx->c, ", ");
-    visit(Child(node, 6), ctx);
-    BufferSCopy(0, ctx->c, ")");
-  } else {
-    VisitChildren(node, ctx);
-  }
+  VisitIdx(node, ctx, true);
 }
+
 void VisitAssign(int node, Context* ctx) {
 
   Span varName = ChildValue(node, 1);

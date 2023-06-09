@@ -118,6 +118,15 @@ SymKindFind(Span s) {
   return SymGKind[SymGFind(s)];
 }
 
+inline Span
+SymTypeFind(Span s) {
+  int v;
+  if((v = SymLFind(s)) != -1) {
+    return SPAN(SymLType[v], SymLTLen[v]);
+  }
+  return SPAN(SymGType[v], SymGTLen[v]);
+}
+
 inline void
 SymInit() {
   memset(SymGbl,   0, MAXGLOBALSYMBOLS * sizeof(SymGbl[0]));
@@ -164,5 +173,6 @@ int   SymGFind(Span sym);
 void  SymInit();
 
 SymKind  SymKindFind(Span s);
+Span SymTypeFind(Span s);
 
 #endif

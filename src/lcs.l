@@ -5,6 +5,7 @@ E			[Ee][+-]?{D}+
 FS		(f|F|l|L)
 IS		(u|U|l|L)*
 
+
 %option noyywrap
 %option fast
 
@@ -78,6 +79,8 @@ IS		(u|U|l|L)*
 
 "___len"     { return(___LEN);}
 "___ptr"     { return(___PTR);}
+
+'([^'\\\n]|\\.)' { return(CHRLIT); }
 
 {L}({L}|{D})*		  { return(check_type()); }
 

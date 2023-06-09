@@ -21,7 +21,7 @@
 
 %define lr.type ielr
 %glr-parser
-%expect 347
+%expect 349
 
 %token NAMESPACE "namespace" USING "using" IDENTIFIER "identifier" CONSTANT "constant" STRING_LITERAL "string literal" SIZEOF "sizeof"
 %token INC_OP "++" DEC_OP "--" LEFT_OP "<<" RIGHT_OP ">>" LE_OP "<=" GE_OP ">=" EQ_OP "==" NE_OP "!="
@@ -31,7 +31,7 @@
 %token ENUM "enum"
 %token CASE "case" DEFAULT "default" IF "if" ELSE "else" SWITCH "switch" WHILE "while" DO "do" FOR "for" GOTO "goto" CONTINUE "continue" BREAK "break" RETURN "return"
 
-%token NEW "new" CCODE "c code" REFSYM ".." PBLOCK "#if .. #endif"
+%token NEW "new" CCODE "c code" REFSYM ".." PBLOCK "#if .. #endif" CHRLIT "char literal"
 %token PTYPE "primitive type" ___LEN "__len" ___PTR "___ptr" STRING "String"
 
 %left ','
@@ -109,7 +109,6 @@ decl_or_func_or_code
 type
   : valuetype
   | reftype
-  | STRING
   ;
 
 reftype
@@ -161,6 +160,7 @@ sliceassign
 valuetype
   : PTYPE { $$ = CreateToken(PrimitiveType, NodeName[$1] , NodeLen[$1], yylloc.first_line, yylloc.first_column); }
   | TYPE_NAME
+  | STRING
   | PTYPE '*' { GETLOC; yyerror(loc, scanner, POINTERS);}
   ;
 
@@ -234,6 +234,7 @@ expr
   | IDENTIFIER
   | funccall
   | qualidentifier
+  | CHRLIT
   | '(' expr ')'           %dprec 1 { NT($$,$1,$2,$3) }
   | expr '=' expr          %dprec 1 { NT($$,$1,$2,$3) }
   | expr ADD_ASSIGN expr   %dprec 1 { NT($$,$1,$2,$3) }
