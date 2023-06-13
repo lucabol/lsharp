@@ -79,37 +79,40 @@ int themain(int argc, char* argv[]) {
   int k, index;
   char* tempDirValue = "/tmp";
 
+  // Build preprocessor command
   Byte _cppcmd[MAXCMDLINE];
   Buffer cppcmd = BufferInit(_cppcmd, MAXCMDLINE);
   BufferSCopy(' ', &cppcmd, CPP);
   BufferSCopy(' ', &cppcmd, CPPFLAGS);
 
+  // Build compiler command
   Byte _cmd[MAXCMDLINE];
   Buffer cmd = BufferInit(_cmd, MAXCMDLINE);
   BufferSCopy(' ', &cmd, COMP);
   BufferSCopy(' ', &cmd, CFLAGS);
 
+  // Process command line options
   while ((k = getopt (argc, argv, "gOco:pdt:")) != -1) {
     switch(k) {
-      case 'd':
+      case 'd': // Debug parser
         yydebug = 1;
         break;
-      case 't':
+      case 't': // Select temporary directory for c files (/tmp is default)
         tempDirValue = optarg;
         break;
-      case 'p':
+      case 'p': // Show into console (does it work??)
         tempDirValue = NULL;
         break;
-      case 'g':
+      case 'g': // Compile with debug symbols
         BufferSCopy(' ', &cmd, " ", OPT_g);
         break;
-      case 'O':
+      case 'O': // Compile optimized
         BufferSCopy(' ', &cmd, " ", OPT_O);
         break;
-      case 'c':
+      case 'c': // Compile to object file (don't look for main)
         BufferSCopy(' ', &cmd, " ", OPT_c);
         break;
-      case 'o':
+      case 'o': // Specifiy name of resulting executable
         BufferSCopy(' ', &cmd, " ", OPT_o, optarg);
         break;
       default:
@@ -121,7 +124,10 @@ int themain(int argc, char* argv[]) {
     
     char* filename = argv[index];
 
-    // Run preprocessor on input file
+    // Run preprocessor on input file generating a filename.i file to pass to gcc
+    // I need to run the preprocessor before the compiler because the macros should be defined
+    // in my language, not in the C language. The latter would be the case if I run the preprocessor
+    // after I have transpiled from my language to C.
     Byte cppbuf[512];
     Span cppname = buildFileName(cppbuf, sizeof(cppbuf), filename, tempDirValue, ".i");
 

@@ -349,13 +349,13 @@ void VisitRefAssignId(int node, Context* ctx) {
   Buffer* tmp = ctx->c;
   ctx->c = ctx->spans;
   if(kind == SymGlobalSliceVar || kind == SymLocalSliceVar) {
-    BufferMCopy(0, ctx->c, target, S(" = "), ctx->typeName, S("SpanArr("), source, S(", "));
+    BufferMCopy(0, ctx->c, target, S(" = "), S("SPANARR("), target, S(","), source, S(", "));
     visit(Child(node, 5), ctx);
     BufferMCopy(0, ctx->c, S(", "));
     visit(Child(node, 7), ctx);
     BufferMCopy(0, ctx->c, S(" )"));
   } else if(kind == SymGlobalRefVar || kind == SymLocalRefVar) {
-    BufferMCopy(0, ctx->c, target, S(" = "), ctx->typeName, S("SpanSlice("), source, S(", "));
+    BufferMCopy(0, ctx->c, target, S(" = "), S("SPANSLICE("), source, S(", "));
     visit(Child(node, 5), ctx);
     BufferMCopy(0, ctx->c, S(", "));
     visit(Child(node, 7), ctx);
@@ -383,11 +383,7 @@ void VisitIdx(int node, Context* ctx, bool withAssign) {
   bool needsAccessors = kind == SymGlobalRefVar || kind == SymLocalRefVar || isString; 
 
   if(needsAccessors) {
-    if(isString && (kind == SymGlobalVar || kind == SymLocalVar)) {
-      BufferSCopy(0, ctx->c, withAssign ? "charSpanSet(" : "charSpanGet(");
-    } else {
-      BufferMCopy(0, ctx->c, ctx->typeName, withAssign ? S("SpanSet(") : S("SpanGet("));
-    }
+    BufferSCopy(0, ctx->c, withAssign ? "SPANSET(" : "SPANGET(");
     visit(Child(node, 1), ctx);
     BufferSCopy(0, ctx->c, ", ");
     visit(Child(node, 3), ctx);

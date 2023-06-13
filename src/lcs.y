@@ -220,6 +220,7 @@ stmt
   | WHILE '(' expr ')' block { NTT(WithLine,$$,$1,$2,$3,$4,$5) }
   | FOR '(' expr_list ';' expr_list ';' expr_list ')' block { NTT(WithLine,$$,$1,$2,$3,$4,$5,$6,$7,$8,$9) }
   | RETURN expr ';' { NTT(WithLine,$$,$1,$2,$3) }
+  | IF '(' expr ')' block { NTT(WithLine,$$,$1,$2,$3,$4,$5) }
   | IF '(' expr ')' block ELSE block { NTT(WithLine,$$,$1,$2,$3,$4,$5,$6,$7) }
   | ccode
   ;

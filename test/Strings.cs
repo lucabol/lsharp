@@ -1,13 +1,14 @@
 using string.h;
 using assert.h;
 
+String[] st1[12];
+
 int main() {
   String stp = "John";
 
   char[] s = "Robb";
   s[1] = 'a';
 
-  String[] st1[12];
   String[] st2 = { "Rob", "Bob"}; 
 
   st1[0] = "blah";
@@ -20,5 +21,5 @@ int main() {
   while(i++ < string.strlen(___ptr s)) {
     sum++;
   }
-  return sum - 4;
+  return sum - 4 + ___len stp - 4;
 }

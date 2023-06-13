@@ -111,7 +111,7 @@ SymGAdd(Span sym, SymKind t, Span typ) {
 
 inline int
 SymGFind(Span sym) {
-  assert(SpanValid(sym));
+  //assert(SpanValid(sym));
 
   uint64_t h = HashString(sym.ptr, (int32_t)sym.len);
   for(int32_t i = (int32_t)h;;) {
@@ -134,16 +134,24 @@ SymKindFind(Span s) {
   if((v = SymLFind(s)) != -1) {
     return SymLKind[v];
   }
-  return SymGKind[SymGFind(s)];
+  v = SymGFind(s);
+  if(v == -1)
+    return SymNotFound;
+  else
+    return SymGKind[v];
 }
 
 inline Span
 SymTypeFind(Span s) {
   int v;
   if((v = SymLFind(s)) != -1) {
-    return SPAN(SymLType[v],SymLTLen[v]);
+    return SPAN(SymLType[v], SymLTLen[v]);
   }
-  return SPAN(SymGType[v],SymGTLen[v]);
+  v = SymGFind(s);
+  if(v == -1)
+    return SPAN0;
+  else
+    return SPAN(SymGType[v], SymGTLen[v]);
 }
 
 inline void
