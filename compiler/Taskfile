@@ -1,5 +1,7 @@
 #!/bin/bash
 
+TARGET="lcs.bak"
+
 function clean {    # Clean things
     rm *.o lcs
 }
@@ -10,7 +12,7 @@ function commonbuild {
   ./Taskfile build
   popd > /dev/null
 
-  ../src/lcs  -o lcs.bak $1 *.cs
+  ../src/lcs  -o $TARGET $1 *.cs
 }
 function build {    # Build debug
   commonbuild "-g"
@@ -19,8 +21,13 @@ function buildr {    # Build speed
   commonbuild "-O"
 }
 
+function buildt {    # Build speed
+  commonbuild "-g -D TEST"
+}
+
 function run {    # Runs something
-  build
+  buildt
+  ./$TARGET
 }
 
 function help {     # Prints help
