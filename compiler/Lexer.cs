@@ -13,6 +13,7 @@ enum TokenId {
   Tokens
 }
 #undef X
+
 #define X(n) #n,
 String[] TokenNames = { Tokens };
 #undef X
@@ -20,6 +21,13 @@ String[] TokenNames = { Tokens };
 Struct4(5, String,Code, int,NextChar, String,Value, int,TokId)
 
 int New(String code) { return _New(code, 0, "", 0); }
+
+void Consume(int lexer) {}
+TokenId  Peek(int lexer) {
+
+  TokenId e = TokError;
+  return e;
+}
 
 /*
 String[] Code [MAXLEXERS];
