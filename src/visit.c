@@ -60,9 +60,9 @@ void VisitToken(int node, Context* ctx) {
       spacing = 0;
   };
 
-  BufferMCopy(spacing, ctx->c, pre, sp);
+  BufferMCopy(spacing, ctx->c, pre, sp, S(" "));
   if(ctx->toHeader) {
-    BufferMCopy(spacing, ctx->h, pre, sp);
+    BufferMCopy(spacing, ctx->h, pre, sp, S(" "));
   }
 }
 
@@ -469,6 +469,9 @@ void VisitParamRefDef(int node, Context* ctx) {
 }
 
 void VisitEnum(int node, Context* ctx) {
+
+  Span varName = ChildValue(node, 2);
+  AddToST(varName, ctx, IsVar);
 
   Buffer* tmp = ctx->c;
   ctx->c = ctx->h;

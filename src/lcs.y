@@ -103,7 +103,7 @@ decl_or_func_or_code
   : decl { NTT(GlobalDecl, $$, $1) }
   | func
   | ccode
-  | enumdef
+  | enumdef  { NTT(GlobalDecl, $$, $1) }
   | PBLOCK
   ;
 
@@ -210,7 +210,8 @@ assign
   ;
 
 func
-  : type IDENTIFIER '(' param_list ')' block { NTT(FuncDef,$$,$1,$2,$3,$4,$5,$6); ST($2,SymLocalFunc); }
+  : type IDENTIFIER '(' param_list ')' block       { NTT(FuncDef,$$,$1,$2,$3,$4,$5,$6); ST($2,SymLocalFunc); }
+  | IDENTIFIER IDENTIFIER '(' param_list ')' block { NTT(FuncDef,$$,$1,$2,$3,$4,$5,$6); ST($2,SymLocalFunc); }
   ;
 
 funccall
