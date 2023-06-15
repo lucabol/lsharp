@@ -198,6 +198,7 @@ valuetype
 
 valuedecl
   : valuetype assign assign_list ';' { NTT(DeclAssign,$$,$1,$2,$3,$4) }
+  | qualidentifier assign assign_list ';' { NTT(DeclAssign,$$,$1,$2,$3,$4) }
   ;
 
 assign_list
