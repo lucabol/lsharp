@@ -48,6 +48,7 @@ typedef struct {
   X(String) \
   X(ParamDef) \
   X(ParamRefDef) \
+  X(Enum) \
 
 #define X(n) n,
 typedef enum {

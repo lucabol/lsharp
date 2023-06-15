@@ -468,6 +468,17 @@ void VisitParamRefDef(int node, Context* ctx) {
   VisitChildren(node, ctx);
 }
 
+void VisitEnum(int node, Context* ctx) {
+
+  Buffer* tmp = ctx->c;
+  ctx->c = ctx->h;
+  BufferSCopy(0, ctx->c, "typedef enum { ");
+  visit(Child(node,4), ctx);
+  BufferSCopy(0, ctx->c, " } ");
+  visit(Child(node,2), ctx);
+  BufferSCopy(0, ctx->c, " ;\n");
+  ctx->c = tmp;
+}
 void VisitDeclAssign(int node, Context* ctx) {
 
   ExtractType(Child(node, 1), ctx);
@@ -592,6 +603,9 @@ void visit(int node, Context* ctx) {
       break;
     case ParamRefDef:
       VisitParamRefDef(node, ctx);
+      break;
+     case Enum:
+      VisitEnum(node, ctx);
       break;
     case Empty:
       break;

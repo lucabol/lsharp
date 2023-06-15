@@ -1,7 +1,9 @@
 #include "Config.h"
 #include "Struct.h"
 
-Struct3(5, String,Code, int,Index, String,Token)
+Struct4(5, String,Code, int,NextChar, String,Value, int,TokId)
+
+int New(String code) { return _New(code, 0, "", 0); }
 
 /*
 String[] Code [MAXLEXERS];
@@ -20,4 +22,3 @@ int New(String s, Index i, String tok) {
 }
 
 */
-// vim:ft=c

@@ -21,7 +21,7 @@
 
 %define lr.type ielr
 %glr-parser
-%expect 541
+%expect 547
 
 %token NAMESPACE "namespace" USING "using" IDENTIFIER "identifier" CONSTANT "constant" STRING_LITERAL "string literal" SIZEOF "sizeof"
 %token INC_OP "++" DEC_OP "--" LEFT_OP "<<" RIGHT_OP ">>" LE_OP "<=" GE_OP ">=" EQ_OP "==" NE_OP "!="
@@ -103,6 +103,7 @@ decl_or_func_or_code
   : decl { NTT(GlobalDecl, $$, $1) }
   | func
   | ccode
+  | enumdef
   | PBLOCK
   ;
 
@@ -117,9 +118,35 @@ reftype
 
 decl
   : valuedecl
-  | %?{  false } slicedecl { NT($$,$2) }
+  | enumdecl
   | refdecl
+  | %?{  false } slicedecl { NT($$,$2) }
   ;
+
+enumdecl
+  : IDENTIFIER IDENTIFIER '=' expr { NT($$,$1,$2,$3,$4) }
+  ;
+
+enumdef
+  : ENUM IDENTIFIER '{' ecase_list '}' { NTT(Enum, $$,$1,$2,$3,$4,$5)}
+  ;
+
+ecase_list
+  : %empty { EMPTY($$) } 
+  | ecases
+  | ecases ','
+  ;
+
+ecases
+  : ecase
+  | ecase  ',' ecases { NT($$,$1,$2,$3) }
+  ;
+
+ecase
+  : IDENTIFIER
+  | IDENTIFIER '=' expr { NT($$,$1,$2,$3) }
+  ;
+
 
 refdecl
   : reftype refassign refassign_list ';'  { NTT(RefDeclAssign,$$,$1,$2,$3,$4) }

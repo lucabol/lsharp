@@ -5,25 +5,25 @@
 #define StructDef5(N,t1,n1,t2,n2,t3,n3,t4,n4,t5,n5) StructDef4(N,t1,n1,t2,n2,t3,n3,t4,n4); t5[] n5[N]
 
 
-#define New1(N,t1,n1) int New(t1 _##n1) { if(Idx >= N) { \
+#define New1(N,t1,n1) int _New(t1 _##n1) { if(Idx >= N) { \
   Die("Too many objects");} \
   n1[Idx] = _##n1; \
   return Idx++;}
 
-#define New2(N,t1,n1,t2,n2) int New(t1 _##n1, t2 _##n2) { if(Idx >= N) { \
+#define New2(N,t1,n1,t2,n2) int _New(t1 _##n1, t2 _##n2) { if(Idx >= N) { \
   Die("Too many objects");} \
   n1[Idx] = _##n1; \
   n2[Idx] = _##n2; \
   return Idx++;}
 
-#define New3(N,t1,n1,t2,n2,t3,n3) int New(t1 _##n1, t2 _##n2, t3 _##n3) { if(Idx >= N) { \
+#define New3(N,t1,n1,t2,n2,t3,n3) int _New(t1 _##n1, t2 _##n2, t3 _##n3) { if(Idx >= N) { \
   Die("Too many objects");} \
   n1[Idx] = _##n1; \
   n2[Idx] = _##n2; \
   n3[Idx] = _##n3; \
   return Idx++;}
 
-#define New4(N,t1,n1,t2,n2,t3,n3,t4,n4) int New (N,t1,n1,t2,n2,t3,n3,t4,n4) { if(Idx >= N) { \
+#define New4(N,t1,n1,t2,n2,t3,n3,t4,n4) int _New(t1 _##n1,t2 _##n2,t3 _##n3,t4 _##n4) { if(Idx >= N) { \
   Die("Too many objects");} \
   n1[Idx] = _##n1; \
   n2[Idx] = _##n2; \
@@ -31,7 +31,7 @@
   n4[Idx] = _##n4; \
   return Idx++;}
 
-#define New5(N,t1,n1,t2,n2,t3,n3,t4,n4,t5,n5) int New (N,t1,n1,t2,n2,t3,n3,t4,n4,t5,n5) { if(Idx >= N) { \
+#define New5(N,t1,n1,t2,n2,t3,n3,t4,n4,t5,n5) int _New(t1 _##n1,t2 _##n2,t3 _##n3,t4 _##n4,t5 _##n5) { if(Idx >= N) { \
   Die("Too many objects");} \
   n1[Idx] = _##n1; \
   n2[Idx] = _##n2; \
