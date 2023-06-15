@@ -1,16 +1,23 @@
-#define MAX 1024
+#include "Config.h"
+#include "Struct.h"
 
-String[] Code [MAX];
-int[]    Index[MAX];
-String[] Token[MAX];
+Struct3(5, String,Code, int,Index, String,Token)
 
-int NextLexer = 0;
+/*
+String[] Code [MAXLEXERS];
+int[]    Index[MAXLEXERS];
+String[] Token[MAXLEXERS];
+int Idx = 0;
 
-int New(String s) {
-  Code [NextLexer] = s;
-  Index[NextLexer] = 0;
+int New(String s, Index i, String tok) {
+  if(Idx >= MAXLEXERS) { Die("You are using too many lexers."); }
 
-  return NextLexer++;
+  Code [Idx] = s;
+  Index[Idx] = i;
+  Token[Idx] = tok;
+
+  return Idx++;
 }
 
-
+*/
+// vim:ft=c
