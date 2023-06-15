@@ -157,8 +157,13 @@ refassign_list
   | refassign_list ',' refassign { NTT(RefAssignCommas,$$,$1,$2,$3) }
   ;
 
+expr_list_comma
+  : expr_list
+  | expr_list ',' { NT($$,$1,$2) }
+  ;
+
 refassign
-  : IDENTIFIER '=' '{' expr_list '}'      { NTT(RefAssignList,$$,$1,$2,$3,$4,$5) }
+  : IDENTIFIER '=' '{' expr_list_comma '}'      { NTT(RefAssignList,$$,$1,$2,$3,$4,$5) }
   | IDENTIFIER '=' STRING_LITERAL         { NTT(RefAssignStr,$$,$1,$2,$3) }
   | IDENTIFIER '=' funccall               { NTT(RefAssignFunc,$$,$1,$2,$3) }
   | IDENTIFIER '=' IDENTIFIER             { NTT(RefAssignFunc,$$,$1,$2,$3) }

@@ -1,6 +1,22 @@
 #include "Config.h"
 #include "Struct.h"
 
+#define Tokens \
+  X(TokError) \
+  X(TokIdentifier) \
+  X(TokValueType) \
+  X(TokStringConst) \
+  X(TokNumConst) \
+
+#define X(n) n,
+enum TokenId {
+  Tokens
+}
+#undef X
+#define X(n) #n,
+String[] TokenNames = { Tokens };
+#undef X
+
 Struct4(5, String,Code, int,NextChar, String,Value, int,TokId)
 
 int New(String code) { return _New(code, 0, "", 0); }

@@ -58,11 +58,7 @@ TSPAN(uint16_t);
 #define String charSpan
 TSPAN(String);
 
-static inline charSpan CharSpanFromLit(char* lit) {
-  int32_t i = 0;
-  while(lit[i++] !=0) ;
-  return (charSpan) { lit, i - 1 };
-}
+#define CharSpanFromLit(lit) (charSpan) { lit, sizeof(lit) - 1}
 
 #undef TSPAN
 #undef SPANDIE
