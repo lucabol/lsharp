@@ -240,26 +240,29 @@ void VisitRefType(int node, Context* ctx) {
     BufferMCopy(0,ctx->h, ctx->typeName, S("Span "));
   }
 }
+
+Span pre = S("__Buf");
+
 void VisitRefAssignList(int node, Context* ctx) {
 
   Span varName = ChildValue(node, 1);
 
   AddToST(varName, ctx, IsRef);
   EmitHeader(varName, ctx, IsRef);
-  
-  Span pre = S(" __Buf");
+
+  Span ns = ctx->globalDecl ? ctx->name_space : S("");
 
   Buffer* tmp = ctx->c;
   ctx->c = ctx->arrays;
-  BufferMCopy(0, ctx->c, pre, varName, S("[] "));
+  BufferMCopy(0, ctx->c, ns, pre, varName, S("[] "));
   visit(Child(node, 2), ctx);
   visit(Child(node, 3), ctx);
   visit(Child(node, 4), ctx);
   visit(Child(node, 5), ctx);
   ctx->c = tmp;
 
-  BufferMCopy(0, ctx->spans, ctx->globalDecl ? ctx->name_space : S(""),
-              varName, S("="), S("{"), pre, varName, S(",ARSIZE("),pre,varName, S(")}"));
+  BufferMCopy(0, ctx->spans, ns,
+              varName, S("="), S("{"), ns, pre, varName, S(",ARSIZE("),ns, pre,varName, S(")}"));
 }
 
 void VisitRefAssignConst(int node, Context* ctx) {
@@ -269,17 +272,17 @@ void VisitRefAssignConst(int node, Context* ctx) {
   AddToST(varName, ctx, IsRef);
   EmitHeader(varName, ctx, IsRef);
   
-  Span pre = S(" __Buf");
+  Span ns = ctx->globalDecl ? ctx->name_space : S("");
 
   Buffer* tmp = ctx->c;
   ctx->c = ctx->arrays;
-  BufferMCopy(0, ctx->c, pre, varName, S("[ "));
+  BufferMCopy(0, ctx->c, ns, pre, varName, S("[ "));
   visit(Child(node, 3), ctx);
   BufferSCopy(0, ctx->c," ]");
   ctx->c = tmp;
 
-  BufferMCopy(0, ctx->spans, ctx->globalDecl ? ctx->name_space : S(""),
-              varName, S("="), S("{"), pre, varName, S(",ARSIZE("),pre,varName, S(")}"));
+  BufferMCopy(0, ctx->spans, ns,
+              varName, S("="), S("{"), ns, pre, varName, S(",ARSIZE("),ns, pre,varName, S(")}"));
 }
 
 void VisitRefAssignStr(int node, Context* ctx) {
@@ -289,17 +292,17 @@ void VisitRefAssignStr(int node, Context* ctx) {
   AddToST(varName, ctx, IsRef);
   EmitHeader(varName, ctx, IsRef);
   
-  Span pre = S(" __Buf");
+  Span ns = ctx->globalDecl ? ctx->name_space : S("");
 
   Buffer* tmp = ctx->c;
   ctx->c = ctx->arrays;
-  BufferMCopy(0, ctx->c, pre, varName, S("[] "));
+  BufferMCopy(0, ctx->c, ns, pre, varName, S("[] "));
   visit(Child(node, 2), ctx);
   visit(Child(node, 3), ctx);
   ctx->c = tmp;
 
-  BufferMCopy(0, ctx->spans, ctx->globalDecl ? ctx->name_space : S(""),
-              varName, S("="), S("{"), pre, varName, S(",ARSIZE("),pre,varName, S(") - 1}"));
+  BufferMCopy(0, ctx->spans, ns,
+              varName, S("="), S("{"), ns, pre, varName, S(",ARSIZE("),ns, pre,varName, S(") - 1}"));
 }
 
 void VisitRefOp(int node, Context* ctx) {
@@ -366,6 +369,32 @@ void VisitRefAssignId(int node, Context* ctx) {
   ctx->c = tmp;
 }
 
+void VisitRefSlice(int node, Context* ctx) {
+
+  int id = Child(node,1);
+  Span varName = ChildValue(node, 1);
+  Span type = SymTypeFind(varName);
+
+  SymKind kind = SymGlobalRefVar;
+
+  if(NodeKind[id] != QualIdentifier) { 
+    kind = SymKindFind(varName);
+  }
+
+  bool isString = SpanEqual(type,S("String"));
+  bool needsAccessors = kind == SymGlobalRefVar || kind == SymLocalRefVar || isString; 
+
+  if(needsAccessors) {
+    BufferMCopy(0, ctx->c, S("SPANSLICE("), varName, S(", "));
+    visit(Child(node, 3), ctx);
+    BufferMCopy(0, ctx->c, S(", "));
+    visit(Child(node, 5), ctx);
+    BufferMCopy(0, ctx->c, S(" )"));
+  } else {
+    ERR(node, "Trying to slice a non-sliceable type.");
+  }
+}
+
 void VisitIdx(int node, Context* ctx, bool withAssign) {
   // The indexing operator when using an imported symbol doesn't know the type (array or slice). It assumes slice.
   // This is clearly awkward. Either I need a global symbol table across all parsed files or remove support for arrays.
@@ -414,6 +443,27 @@ void VisitAssign(int node, Context* ctx) {
 
   AddToST(varName, ctx, IsVar);
   EmitHeader(varName, ctx, IsVar);
+  
+  VisitChildren(node, ctx);
+}
+
+void VisitParamDef(int node, Context* ctx) {
+
+  Span typeName = ChildValue(node, 1);
+  Span varName  = ChildValue(node, 2);
+
+  ctx->typeName = typeName;
+  AddToST(varName, ctx, IsVar);
+  
+  VisitChildren(node, ctx);
+}
+void VisitParamRefDef(int node, Context* ctx) {
+
+  Span typeName = ChildValue(node, 1);
+  Span varName  = ChildValue(node, 2);
+
+  ctx->typeName = typeName;
+  AddToST(varName, ctx, IsRef);
   
   VisitChildren(node, ctx);
 }
@@ -486,6 +536,9 @@ void visit(int node, Context* ctx) {
     case RefAssignList: // Assignment after declaration 
       VisitRefAssignList(node, ctx);
       break;
+    case RefSlice: // Slice a ref
+      VisitRefSlice(node, ctx);
+      break;
     case RefAssignConst: // Assignment after declaration 
       VisitRefAssignConst(node, ctx);
       break;
@@ -533,6 +586,14 @@ void visit(int node, Context* ctx) {
       break;
     case String:
       VisitString(node, ctx);
+      break;
+    case ParamDef:
+      VisitParamDef(node, ctx);
+      break;
+    case ParamRefDef:
+      VisitParamRefDef(node, ctx);
+      break;
+    case Empty:
       break;
     }
 }

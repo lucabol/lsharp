@@ -12,7 +12,7 @@ function build {    # Build stuff
   echo -n BUILD DOTNET
   time dotnet build  --nologo -v q
   echo BUILD DOTNETAOT
-  time dotnet publish
+  time dotnet publish --nologo -v q
   echo -n BUILD GCC
   time gcc -Ofast -x c Program.cs -oleibnizc
   echo -n BUILD LCS

@@ -21,7 +21,7 @@
 
 %define lr.type ielr
 %glr-parser
-%expect 349
+%expect 541
 
 %token NAMESPACE "namespace" USING "using" IDENTIFIER "identifier" CONSTANT "constant" STRING_LITERAL "string literal" SIZEOF "sizeof"
 %token INC_OP "++" DEC_OP "--" LEFT_OP "<<" RIGHT_OP ">>" LE_OP "<=" GE_OP ">=" EQ_OP "==" NE_OP "!="
@@ -32,7 +32,7 @@
 %token CASE "case" DEFAULT "default" IF "if" ELSE "else" SWITCH "switch" WHILE "while" DO "do" FOR "for" GOTO "goto" CONTINUE "continue" BREAK "break" RETURN "return"
 
 %token NEW "new" CCODE "c code" REFSYM ".." PBLOCK "#if .. #endif" CHRLIT "char literal"
-%token PTYPE "primitive type" ___LEN "__len" ___PTR "___ptr" STRING "String"
+%token PTYPE "primitive type" ___LEN "___len" ___PTR "___ptr" STRING "String"
 
 %left ','
 %right '=' "+=" "-=" "*=" ">>=" "<<=" "&=" "^=" "|="
@@ -193,8 +193,8 @@ param_list
   ;
 
 paramdecl
-  : type IDENTIFIER         { NT($$,$1,$2) }
-  | type IDENTIFIER '[' ']' { NT($$,$1,$2,$3,$4) }
+  : type IDENTIFIER         { NTT(ParamDef,$$,$1,$2) }
+  | type IDENTIFIER '[' ']' { NTT(ParamRefDef,$$,$1,$2,$3,$4) }
   ;
 
 expr_list
@@ -243,17 +243,19 @@ expr
   | expr DIV_ASSIGN expr   %dprec 1 { NT($$,$1,$2,$3) }
   | expr SUB_ASSIGN expr   %dprec 1 { NT($$,$1,$2,$3) }
   | expr MOD_ASSIGN expr   %dprec 1 { NT($$,$1,$2,$3) }
+  | ___LEN expr            %dprec 2 { NTT(RefOp, $$,$1,$2) }
+  | ___PTR expr            %dprec 2 { NTT(RefOp, $$,$1,$2) }
   | expr '?' expr ':' expr %dprec 2 { NT($$,$1,$2,$3,$4,$5) }
   | expr "||" expr         %dprec 3 { NT($$,$1,$2,$3) }
   | expr "&&" expr         %dprec 4 { NT($$,$1,$2,$3) }
-  | expr "|" expr          %dprec 5 { NT($$,$1,$2,$3) }
-  | expr "^" expr          %dprec 6 { NT($$,$1,$2,$3) }
-  | expr "&" expr          %dprec 7 { NT($$,$1,$2,$3) }
+  | expr '|' expr          %dprec 5 { NT($$,$1,$2,$3) }
+  | expr '^' expr          %dprec 6 { NT($$,$1,$2,$3) }
+  | expr '&' expr          %dprec 7 { NT($$,$1,$2,$3) }
   | expr "==" expr         %dprec 8 { NT($$,$1,$2,$3) }
   | expr "!=" expr         %dprec 8 { NT($$,$1,$2,$3) }
   | expr "<=" expr         %dprec 9 { NT($$,$1,$2,$3) }
   | expr ">=" expr         %dprec 9 { NT($$,$1,$2,$3) }
-  | expr ">" expr          %dprec 9 { NT($$,$1,$2,$3) }
+  | expr '>' expr          %dprec 9 { NT($$,$1,$2,$3) }
   | expr '<' expr          %dprec 9 { NT($$,$1,$2,$3) }
   | expr ">>" expr         %dprec 10 { NT($$,$1,$2,$3) }
   | expr "<<" expr         %dprec 10 { NT($$,$1,$2,$3) }
@@ -263,10 +265,12 @@ expr
   | expr '*' expr          %dprec 12 { NT($$,$1,$2,$3) }
   | expr '/' expr          %dprec 12 { NT($$,$1,$2,$3) }
   | '(' type ')' expr      %dprec 13 { NT($$,$1,$2,$3,$4) }
-  | IDENTIFIER '[' expr ']' '=' expr %dprec 13      { NTT(IndexerS, $$,$1,$2,$3,$4,$5,$6) }
-  | IDENTIFIER '[' expr ']' %dprec 13               { NTT(Indexer, $$,$1,$2,$3,$4) }
-  | qualidentifier '[' expr ']' '=' expr %dprec 13  { NTT(IndexerS, $$,$1,$2,$3,$4,$5,$6) }
-  | qualidentifier '[' expr ']' %dprec 13           { NTT(Indexer,$$,$1,$2,$3,$4) }
+  | IDENTIFIER '[' expr ']' '=' expr %dprec 13        { NTT(IndexerS, $$,$1,$2,$3,$4,$5,$6) }
+  | IDENTIFIER '[' expr ']' %dprec 13                 { NTT(Indexer, $$,$1,$2,$3,$4) }
+  | IDENTIFIER '[' expr REFSYM expr ']' %dprec 13     { NTT(RefSlice,$$,$1,$2,$3,$4,$5,$6) }
+  | qualidentifier '[' expr ']' '=' expr %dprec 13    { NTT(IndexerS, $$,$1,$2,$3,$4,$5,$6) }
+  | qualidentifier '[' expr ']' %dprec 13             { NTT(Indexer,$$,$1,$2,$3,$4) }
+  | qualidentifier '[' expr REFSYM expr ']' %dprec 13 { NTT(RefSlice,$$,$1,$2,$3,$4,$5,$6) }
   | '-' expr %prec NEG     %dprec 13 { NT($$,$1,$2) }
   | '+' expr %prec NEG     %dprec 13 { NT($$,$1,$2) }
   | '!' expr %prec '!'     %dprec 13 { NT($$,$1,$2) }
@@ -276,8 +280,6 @@ expr
   | '&' expr                %dprec 13 { GETLOC; yyerror(loc, scanner, REFERENCES);}
   | expr "++" %prec POSTINCR %dprec 13 { NT($$,$1,$2) }
   | expr "--"  %prec POSTDECR %dprec 13 { NT($$,$1,$2) }
-  | ___LEN expr %prec POSTDECR %dprec 13 { NTT(RefOp, $$,$1,$2) }
-  | ___PTR expr %prec POSTDECR %dprec 13 { NTT(RefOp, $$,$1,$2) }
   ;
 
 %%

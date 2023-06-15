@@ -101,7 +101,7 @@ extern int yydebug;
     PBLOCK = 301,                  /* "#if .. #endif"  */
     CHRLIT = 302,                  /* "char literal"  */
     PTYPE = 303,                   /* "primitive type"  */
-    ___LEN = 304,                  /* "__len"  */
+    ___LEN = 304,                  /* "___len"  */
     ___PTR = 305,                  /* "___ptr"  */
     STRING = 306,                  /* "String"  */
     CAST = 312,                    /* CAST  */

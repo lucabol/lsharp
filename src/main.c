@@ -92,7 +92,7 @@ int themain(int argc, char* argv[]) {
   BufferSCopy(' ', &cmd, CFLAGS);
 
   // Process command line options
-  while ((k = getopt (argc, argv, "gOco:pdt:")) != -1) {
+  while ((k = getopt (argc, argv, "gOco:pdt:D:")) != -1) {
     switch(k) {
       case 'd': // Debug parser
         yydebug = 1;
@@ -114,6 +114,9 @@ int themain(int argc, char* argv[]) {
         break;
       case 'o': // Specifiy name of resulting executable
         BufferSCopy(' ', &cmd, " ", OPT_o, optarg);
+        break;
+      case 'D':
+        BufferSCopy(0, &cppcmd, " ", "-D", optarg, " ");
         break;
       default:
         abort();

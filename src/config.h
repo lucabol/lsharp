@@ -43,8 +43,11 @@ typedef struct {
   X(Indexer) \
   X(IndexerS) \
   X(RefType) \
+  X(RefSlice) \
   X(CCode) \
   X(String) \
+  X(ParamDef) \
+  X(ParamRefDef) \
 
 #define X(n) n,
 typedef enum {
@@ -124,7 +127,7 @@ typedef struct {
 // C compiler options (in gcc terms)
 #define COMP   "gcc"
 #define OPT_g  "-g3" 
-#define OPT_O  "-Ofast -fwhole-program" 
+#define OPT_O  "-Ofast -flto -DNDEBUG" 
 #define OPT_o  "-o" 
 #define OPT_c  "-c" 
 

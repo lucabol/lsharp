@@ -4,22 +4,39 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef __STDC_HOSTED__
+#include <stdio.h>
+#define PERR(msg) fprintf(stderr, "ERROR: %s:%d in %s: %s\n", __FILE__, __LINE__, __func__, (msg))
+#else
+#define PERR(msg)
+#endif
+
 #ifdef LS_USERDIEFUNC
-  #define TRAP LS_USERDIEFUNC
+  #define TRAP(msg) LS_USERDIEFUNC(msg) 
 #else
 #if __GNUC__
-      #define TRAP __builtin_trap()
+      #define TRAP(msg) {PERR(msg); __builtin_trap();}
 #elif _MSC_VER
-      #define TRAP __debugbreak()
+      #define TRAP(msg) {PERR(msg); __debugbreak();}
 #else
-      #define TRAP *(volatile int *)0 = 0
+      #define TRAP(msg) {PERR(msg); *(volatile int *)0 = 0;}
 #endif
 #endif
 
-#define SPANGET(sp,idx)        ({ if(idx < 0 || idx >= sp.len) TRAP; sp.ptr[idx];})
-#define SPANSET(sp,idx, value) ({ if(idx < 0 || idx >= sp.len) TRAP; sp.ptr[idx] = value;})
-#define SPANSLICE(sp,s,e)      ({ if(s < 0 || e >= sp.len || e < s) TRAP; (typeof(sp)){ &sp.ptr[s], e - s + 1 }; })
-#define SPANARR(sp,arr,s,e)    ({ if(s < 0 || e >= ARSIZE(arr) || e < s) TRAP; (typeof(sp)){ &arr[s], e - s + 1 }; })
+#define TRAPI TRAP("Index outside array or slice boundary");
+
+#ifdef NDEBUG
+#define assert(cond) ((void)(cond))
+#else
+#define assert(cond) if(!(cond)) {TRAP("assert triggered -> '" #cond "'");}
+#endif
+
+#define tassert(cond) if(!(cond)) {TRAP("'" #cond "'");}
+
+#define SPANGET(sp,idx)        ({ if(idx < 0 || idx >= sp.len) TRAPI; sp.ptr[idx];})
+#define SPANSET(sp,idx, value) ({ if(idx < 0 || idx >= sp.len) TRAPI; sp.ptr[idx] = value;})
+#define SPANSLICE(sp,s,e)      ({ if(s < 0 || e >= sp.len || e < s) TRAPI; (typeof(sp)){ &sp.ptr[s], e - s + 1 }; })
+#define SPANARR(sp,arr,s,e)    ({ if(s < 0 || e >= ARSIZE(arr) || e < s) TRAPI; (typeof(sp)) tmp = { &arr[s], e - s + 1 }; tmp; })
 
 #define TSPAN(T) typedef struct {T* ptr;int32_t len;} T##Span;
 
