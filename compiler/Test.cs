@@ -26,4 +26,6 @@ void LexerT() {
   s = Lexer.Code[l2];
   tassert(s[0] == 'd');
   tassert(Lexer.NextChar[l2] == 0);
+
+  tassert(Os.StringEq(Lexer.TokenName(Eof),"End Of File"));
 }

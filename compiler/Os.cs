@@ -36,3 +36,7 @@ String SlurpFile(String path, String buffer) {
 
     return buffer[0 .. len];
 }
+
+bool StringEq(String a, String b) {
+  return !`memcmp(a.ptr, b.ptr, a.len)`;
+}

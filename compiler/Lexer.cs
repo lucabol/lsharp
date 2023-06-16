@@ -2,19 +2,20 @@
 #include "Struct.h"
 
 #define Tokens \
-  X(TokError) \
-  X(TokIdentifier) \
-  X(TokValueType) \
-  X(TokStringConst) \
-  X(TokNumConst) \
+  X(TokError        , Error) \
+  X(TokIdentifier   , Identifier) \
+  X(TokPrimitiveType, Primitive Type) \
+  X(TokStringConst  , String Constant) \
+  X(TokNumConst     , Numeric Constant) \
+  X(Eof             , End Of File) \
 
-#define X(n) n,
+#define X(n, k) n,
 enum TokenId {
   Tokens
 }
 #undef X
 
-#define X(n) #n,
+#define X(n, k) #k,
 String[] TokenNames = { Tokens };
 #undef X
 
@@ -23,11 +24,13 @@ Struct4(5, String,Code, int,NextChar, String,Value, int,TokId)
 int New(String code) { return _New(code, 0, "", 0); }
 
 void Consume(int lexer) {}
+
 TokenId  Peek(int lexer) {
 
-  TokenId e = TokError;
-  return e;
+  return TokId[lexer];
 }
+
+String TokenName(TokenId id) { return TokenNames[(int)id]; }
 
 /*
 String[] Code [MAXLEXERS];
