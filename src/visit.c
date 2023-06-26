@@ -482,6 +482,11 @@ void VisitEnum(int node, Context* ctx) {
   BufferSCopy(0, ctx->c, " ;\n");
   ctx->c = tmp;
 }
+
+void VisitBinOp(int node, Context* ctx) {
+  VisitChildren(node, ctx);
+}
+
 void VisitDeclAssign(int node, Context* ctx) {
 
   ExtractType(Child(node, 1), ctx);
@@ -609,6 +614,9 @@ void visit(int node, Context* ctx) {
       break;
      case Enum:
       VisitEnum(node, ctx);
+      break;
+     case BinOp:
+      VisitBinOp(node, ctx);
       break;
     case Empty:
       break;

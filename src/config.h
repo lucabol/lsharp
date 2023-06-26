@@ -49,6 +49,7 @@ typedef struct {
   X(ParamDef) \
   X(ParamRefDef) \
   X(Enum) \
+  X(BinOp) \
 
 #define X(n) n,
 typedef enum {

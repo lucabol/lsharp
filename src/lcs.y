@@ -22,6 +22,7 @@
 %define lr.type ielr
 %glr-parser
 %expect 547
+%expect-rr 6
 
 %token NAMESPACE "namespace" USING "using" IDENTIFIER "identifier" CONSTANT "constant" STRING_LITERAL "string literal" SIZEOF "sizeof"
 %token INC_OP "++" DEC_OP "--" LEFT_OP "<<" RIGHT_OP ">>" LE_OP "<=" GE_OP ">=" EQ_OP "==" NE_OP "!="
@@ -227,8 +228,10 @@ param_list
   ;
 
 paramdecl
-  : type IDENTIFIER         { NTT(ParamDef,$$,$1,$2) }
-  | type IDENTIFIER '[' ']' { NTT(ParamRefDef,$$,$1,$2,$3,$4) }
+  : type IDENTIFIER               { NTT(ParamDef,$$,$1,$2) }
+  | type IDENTIFIER '[' ']'       { NTT(ParamRefDef,$$,$1,$2,$3,$4) }
+  | IDENTIFIER IDENTIFIER         { NTT(ParamDef,$$,$1,$2) }
+  | IDENTIFIER IDENTIFIER '[' ']' { NTT(ParamRefDef,$$,$1,$2,$3,$4) }
   ;
 
 expr_list
@@ -254,6 +257,7 @@ stmt
   | WHILE '(' expr ')' block { NTT(WithLine,$$,$1,$2,$3,$4,$5) }
   | FOR '(' expr_list ';' expr_list ';' expr_list ')' block { NTT(WithLine,$$,$1,$2,$3,$4,$5,$6,$7,$8,$9) }
   | RETURN expr ';' { NTT(WithLine,$$,$1,$2,$3) }
+  | RETURN ';' { NTT(WithLine,$$,$1,$2) }
   | IF '(' expr ')' block { NTT(WithLine,$$,$1,$2,$3,$4,$5) }
   | IF '(' expr ')' block ELSE block { NTT(WithLine,$$,$1,$2,$3,$4,$5,$6,$7) }
   | ccode
@@ -285,8 +289,8 @@ expr
   | expr '|' expr          %dprec 5 { NT($$,$1,$2,$3) }
   | expr '^' expr          %dprec 6 { NT($$,$1,$2,$3) }
   | expr '&' expr          %dprec 7 { NT($$,$1,$2,$3) }
-  | expr "==" expr         %dprec 8 { NT($$,$1,$2,$3) }
-  | expr "!=" expr         %dprec 8 { NT($$,$1,$2,$3) }
+  | expr "==" expr         %dprec 8 { NTT(BinOp, $$,$1,$2,$3) }
+  | expr "!=" expr         %dprec 8 { NTT(BinOp, $$,$1,$2,$3) }
   | expr "<=" expr         %dprec 9 { NT($$,$1,$2,$3) }
   | expr ">=" expr         %dprec 9 { NT($$,$1,$2,$3) }
   | expr '>' expr          %dprec 9 { NT($$,$1,$2,$3) }
@@ -314,6 +318,7 @@ expr
   | '&' expr                %dprec 13 { GETLOC; yyerror(loc, scanner, REFERENCES);}
   | expr "++" %prec POSTINCR %dprec 13 { NT($$,$1,$2) }
   | expr "--"  %prec POSTDECR %dprec 13 { NT($$,$1,$2) }
+  | ccode %prec POSTDECR %dprec 10
   ;
 
 %%

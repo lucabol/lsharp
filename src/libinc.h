@@ -6,9 +6,11 @@
 
 #ifdef __STDC_HOSTED__
 #include <stdio.h>
+#include <string.h>
 #define PERR(msg) fprintf(stderr, "ERROR: %s:%d in %s: %s\n", __FILE__, __LINE__, __func__, (msg))
 #else
 #define PERR(msg)
+#define memcmp(x,y,l) ({bool b = 1; for(i = 0; i < nelements; i++) { if(a[i] != b[i]) {b = 0;break;} }; b;})
 #endif
 
 #ifdef LS_USERDIEFUNC
