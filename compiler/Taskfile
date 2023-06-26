@@ -25,7 +25,7 @@ function buildt {    # Build speed
   commonbuild "-g -D TEST"
 }
 
-function run {    # Runs something
+function test {    # Runs tests
   buildt
   ./$TARGET
 }
