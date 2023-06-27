@@ -7,7 +7,6 @@ using Os;
 #define Tokens \
   X(TokError        , Error) \
   X(TokIdentifier   , Identifier) \
-  X(TokPrimitiveType, Primitive Type) \
   X(TokStringConst  , String Constant) \
   X(TokNumConst     , Numeric Constant) \
   X(Eof             , End Of File) \
@@ -65,8 +64,8 @@ int _error(int lexer, String msg) {
   column = Os.ItoA(Column[lexer], column);
 
   PrintErr3("ERROR: ", msg, "\n");
-  PrintErr5("at: ", line, ", ", column, "\n");
-  PrintErr4("Token: ", tokname, " with value", value);
+  PrintErr5("At: ", line, ", ", column, " ");
+  PrintErr5("found token: '", tokname, "' with value: '", value, "'\n\n");
 
   return -1;
 }
