@@ -1,8 +1,8 @@
-using ctype.h;
+using Os;
 
 #include "Config.h"
 #include "Struct.h"
-
+#include "Macros.h"
 
 #define Tokens \
   X(TokError        , Error) \
@@ -52,61 +52,85 @@ int _next(String s, int lexer) {
   return s[idx];
 }
 
-String _tmpS = "x";
+char[] _tmpS[1];
 
-#define RetIfEof \
+int _error(int lexer, String msg) {
+  int tokid      = PeekId(lexer);
+  String tokname = TokenName(tokid);
+  String value   = PeekValue(lexer);
+
+  char[] line[10];
+  char[] column[10];
+  line   = Os.ItoA(Line[lexer]  , line);
+  column = Os.ItoA(Column[lexer], column);
+
+  PrintErr3("ERROR: ", msg, "\n");
+  PrintErr5("at: ", line, ", ", column, "\n");
+  PrintErr4("Token: ", tokname, " with value", value);
+
+  return -1;
+}
+
+// Compiler, please optimize away the if test as msg is a compile time string.
+#define RetIfEof(msg) \
   if(chi == -1) { \
     TokId[lexer] = Eof;  \
-    return; \
+    if(Os.StringEq(msg,"")) { \
+      return Eof; \
+    } else { \
+      _error(lexer,  msg); \
+      return -1; \
+    } \
   } \
   ch = (char) chi
 
-#define Until(tok, ...) \
+#define Until(tok, msg, ...) \
   int start = NextChar[lexer] - 1; \
   while(__VA_ARGS__) { \
     chi = _next(s, lexer); \
-    RetIfEof; \
+    RetIfEof(msg); \
   } \
   int end         = NextChar[lexer]; \
   NextChar[lexer] = end - 1; \
-  TokId[lexer] = tok; \
-  Value[lexer] = s[start .. end - 1] 
+  TokId[lexer]    = tok; \
+  Value[lexer]    = s[start .. end - 1] 
 
-void Consume(int lexer) {
+int Consume(int lexer) {
   String s  = Code[lexer];
   int chi   = _next(s, lexer);
   char ch   = 0;
 
-  RetIfEof;
+  RetIfEof("");
 
   // Skip whitespace
-  while(isspace(ch)) {
+  while(Os.IsSpace(ch)) {
     chi = _next(s, lexer);
-    RetIfEof;
+    RetIfEof("");
   }
 
   // Is it a decimal number?
-  if(isdigit(ch)) {
-    Until(TokNumConst, isdigit(ch) || ch == '.');
-    return;
+  if(Os.IsDigit(ch)) {
+    Until(TokNumConst,"", Os.IsDigit(ch) || ch == '.');
+    return TokNumConst;
   }
 
   // Is it a string constant?
   if(ch == '\"') {
-    Until(TokStringConst, ! (ch == '\"'));
-    return;
+    Until(TokStringConst, "String not properly closed", ! (ch == '\"'));
+    return TokStringConst;
   }
 
   // Is it an identifier?
-  if(isalpha(ch) || ch == '_') {
-    Until(TokIdentifier, isalpha(ch) || ch == '_');
-    return;
+  if(Os.IsAlpha(ch) || ch == '_') {
+    Until(TokIdentifier, "", Os.IsAlpha(ch) || ch == '_');
+    return TokIdentifier;
   }
   
   // Else it is some kind of punctuation
   TokId[lexer] = ch;
   _tmpS[0]     = ch;
   Value[lexer] = _tmpS;
+  return ch;
 }
 
 TokenId PeekId(int lexer) {
@@ -121,21 +145,3 @@ String PeekValue(int lexer) {
 String TokenName(TokenId id) {
   return TokenNames[(int)id];
 }
-
-/*
-String[] Code [MAXLEXERS];
-int[]    Index[MAXLEXERS];
-String[] Token[MAXLEXERS];
-int Idx = 0;
-
-int New(String s, Index i, String tok) {
-  if(Idx >= MAXLEXERS) { Die("You are using too many lexers."); }
-
-  Code [Idx] = s;
-  Index[Idx] = i;
-  Token[Idx] = tok;
-
-  return Idx++;
-}
-
-*/

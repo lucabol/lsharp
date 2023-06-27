@@ -1,0 +1,5 @@
+#define PrintErr1(s1) Os.PrintErr(s1)
+#define PrintErr2(s1, s2) PrintErr1(s1);Os.PrintErr(s2)
+#define PrintErr3(s1, s2, s3) PrintErr2(s1,s2);Os.PrintErr(s3)
+#define PrintErr4(s1, s2, s3, s4) PrintErr3(s1,s2,s3);Os.PrintErr(s4)
+#define PrintErr5(s1, s2, s3, s4, s5) PrintErr4(s1,s2,s3,s4);Os.PrintErr(s5)
