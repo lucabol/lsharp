@@ -53,7 +53,18 @@ int _next(String s, int lexer) {
 
 char[] _tmpS[1];
 
-int _error(int lexer, String msg) {
+String _lastLine(int lexer) {
+  String c = Code[lexer];
+  int    i = NextChar[lexer] - 1;
+  int    e = i;
+
+  while(i > 0 && c[i] != '\n') { i -= 1;}
+
+  i = c[i] == '\n' ? i + 1 : i;
+  return c[i .. e];
+}
+
+int Error(int lexer, String msg) {
   int tokid      = PeekId(lexer);
   String tokname = TokenName(tokid);
   String value   = PeekValue(lexer);
@@ -63,9 +74,15 @@ int _error(int lexer, String msg) {
   line   = Os.ItoA(Line[lexer]  , line);
   column = Os.ItoA(Column[lexer], column);
 
-  PrintErr3("ERROR: ", msg, "\n");
-  PrintErr5("At: ", line, ", ", column, " ");
-  PrintErr5("found token: '", tokname, "' with value: '", value, "'\n\n");
+  PrintErr3("ERROR: '", msg, "'");
+  PrintErr5(" at ", line, ", ", column, " - ");
+  PrintErr5("found token: '", tokname, "' with value: '", value, "'\n");
+  PrintErr2(_lastLine(lexer), "\n");
+
+  // Slow but just runs when an error occurs ...
+  int i;
+  for(i = 0; i < Column[lexer]; i++) { PrintErr1(" ");}
+  PrintErr1("^\n\n");
 
   return -1;
 }
@@ -78,7 +95,7 @@ int _error(int lexer, String msg) {
       Value[lexer] = ""; \
       return Eof; \
     } else { \
-      _error(lexer,  msg); \
+      Error(lexer,  msg); \
       return -1; \
     } \
   } \
