@@ -76,6 +76,7 @@ int _error(int lexer, String msg) {
   if(chi == -1) { \
     TokId[lexer] = Eof;  \
     if(Os.StringEq(msg,"")) { \
+      Value[lexer] = ""; \
       return Eof; \
     } else { \
       _error(lexer,  msg); \
@@ -84,16 +85,18 @@ int _error(int lexer, String msg) {
   } \
   ch = (char) chi
 
+// One loop to rule them all with annoying special cases ...
 #define Until(tok, msg, ...) \
+  if(ch == '"') { chi = _next(s, lexer); RetIfEof(msg); } \
   int start = NextChar[lexer] - 1; \
   while(__VA_ARGS__) { \
     chi = _next(s, lexer); \
     RetIfEof(msg); \
   } \
   int end         = NextChar[lexer]; \
-  NextChar[lexer] = end - 1; \
+  NextChar[lexer] = end - (ch == '"' ? 0 : 1); \
   TokId[lexer]    = tok; \
-  Value[lexer]    = s[start .. end - 1] 
+  Value[lexer]    = s[start .. end - 2]  
 
 int Consume(int lexer) {
   String s  = Code[lexer];
