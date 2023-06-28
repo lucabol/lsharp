@@ -104,7 +104,7 @@ typedef struct {
 // How big the buffer for errors
 #define MAXERRORBUF KB(1)
 // How big the buffer for span declarations
-#define MAXSPANBUF KB(1)
+#define MAXSPANBUF KB(128)
 
 // AST features
 #define MAXNODES KB(64)
