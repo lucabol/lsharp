@@ -1,4 +1,5 @@
 using Os;
+using Keywords;
 
 #include "Config.h"
 #include "Struct.h"
@@ -7,12 +8,14 @@ using Os;
 #define Tokens \
   X(TokError        , Error) \
   X(TokIdentifier   , Identifier) \
+  X(TokKeyword      , Identifier) \
   X(TokStringConst  , String Constant) \
   X(TokNumConst     , Numeric Constant) \
   X(Eof             , End Of File) \
 
 #define X(n, k) n,
 enum TokenId {
+  Barrier = 256, // So that the Lexer can return single char punctuation marks with their ascii values
   Tokens
 }
 #undef X
@@ -101,6 +104,20 @@ int Error(int lexer, String msg) {
   } \
   ch = (char) chi
 
+#define SetEof isEof = chi == -1
+
+#define UntilOrEof(...) \
+  if(ch == '"') { chi = _next(s, lexer); } \
+  int start = NextChar[lexer] - 1; \
+  while(__VA_ARGS__) { \
+    chi = _next(s, lexer); \
+  } \
+  isEof = chi == -1; \
+  int end         = NextChar[lexer]; \
+  NextChar[lexer] = end - (ch == '"' ? 0 : 1); \
+  TokId[lexer]    = tok; \
+  Value[lexer]    = s[start .. end - 2]  
+
 // One loop to rule them all with annoying special cases ...
 #define Until(tok, msg, ...) \
   if(ch == '"') { chi = _next(s, lexer); RetIfEof(msg); } \
@@ -142,10 +159,11 @@ int Consume(int lexer) {
   // Is it an identifier?
   if(Os.IsAlpha(ch) || ch == '_') {
     Until(TokIdentifier, "", Os.IsAlpha(ch) || ch == '_');
-    return TokIdentifier;
+    String v = Value[lexer];
+    return Keywords.IsKeyword(v) ? TokKeyword : TokIdentifier;
   }
   
-  // Else it is some kind of punctuation
+  // Else it is a punctuation
   TokId[lexer] = ch;
   _tmpS[0]     = ch;
   Value[lexer] = _tmpS;
@@ -162,5 +180,5 @@ String PeekValue(int lexer) {
 }
 
 String TokenName(TokenId id) {
-  return TokenNames[(int)id];
+  return TokenNames[(int)id - 257];
 }
