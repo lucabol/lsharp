@@ -37,11 +37,12 @@ int New(String code) { return _New(code, 0, "", 0, 1, 0); }
 
 int _next(String s, int lexer) {
   int idx         = NextChar[lexer];
+  NextChar[lexer] = idx + 1;
+
   if(idx >= ___len s) {
     return -1;
   }
 
-  NextChar[lexer] = idx + 1;
   char ch         = s[idx];
 
   // keep line and column up to date
@@ -104,27 +105,11 @@ int Error(int lexer, String msg) {
   } \
   ch = (char) chi
 
-#define SetEof isEof = chi == -1
-
-#define UntilOrEof(...) \
-  if(ch == '"') { chi = _next(s, lexer); } \
+#define UntilOrEof(tok,...) \
+  if(ch == '"') { chi = _next(s, lexer); ch = (char)chi;} \
   int start = NextChar[lexer] - 1; \
-  while(__VA_ARGS__) { \
-    chi = _next(s, lexer); \
-  } \
-  isEof = chi == -1; \
-  int end         = NextChar[lexer]; \
-  NextChar[lexer] = end - (ch == '"' ? 0 : 1); \
-  TokId[lexer]    = tok; \
-  Value[lexer]    = s[start .. end - 2]  
-
-// One loop to rule them all with annoying special cases ...
-#define Until(tok, msg, ...) \
-  if(ch == '"') { chi = _next(s, lexer); RetIfEof(msg); } \
-  int start = NextChar[lexer] - 1; \
-  while(__VA_ARGS__) { \
-    chi = _next(s, lexer); \
-    RetIfEof(msg); \
+  while((__VA_ARGS__) && (chi != -1)) { \
+    chi = _next(s, lexer); ch = (char) chi; \
   } \
   int end         = NextChar[lexer]; \
   NextChar[lexer] = end - (ch == '"' ? 0 : 1); \
@@ -146,21 +131,24 @@ int Consume(int lexer) {
 
   // Is it a decimal number?
   if(Os.IsDigit(ch)) {
-    Until(TokNumConst,"", Os.IsDigit(ch) || ch == '.');
+    UntilOrEof(TokNumConst, Os.IsDigit(ch) || ch == '.');
     return TokNumConst;
   }
 
   // Is it a string constant?
   if(ch == '\"') {
-    Until(TokStringConst, "String not properly closed", ! (ch == '\"'));
+    UntilOrEof(TokStringConst, ! (ch == '\"'));
+    RetIfEof("String not properly closed");
     return TokStringConst;
   }
 
   // Is it an identifier?
-  if(Os.IsAlpha(ch) || ch == '_') {
-    Until(TokIdentifier, "", Os.IsAlpha(ch) || ch == '_');
+  if(Os.IsAlpha(ch) || (ch == '_')) {
+    UntilOrEof(TokIdentifier, Os.IsAlpha(ch) || (ch == '_'));
     String v = Value[lexer];
-    return Keywords.IsKeyword(v) ? TokKeyword : TokIdentifier;
+    int tokid = Keywords.IsKeyword(v) ? TokKeyword : TokIdentifier;
+    TokId[lexer] = tokid; 
+    return tokid;
   }
   
   // Else it is a punctuation
