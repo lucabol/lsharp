@@ -40,6 +40,10 @@ void LexerT() {
   int l3 = Lexer.New("\n\n   \"wrong");
   int wr = Lexer.Consume(l3);
   tassert(wr == -1);
+  
+  int l4 = Lexer.New("\"\" \"bo\nb\" \" \"");
+  TLex(l4,TokStringConst,"");TLex(l4,TokStringConst,"bo\nb");TLex(l4,TokStringConst,"");
+  
 }
 
 void KeywordsT() {

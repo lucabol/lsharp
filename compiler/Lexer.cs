@@ -106,20 +106,23 @@ int Error(int lexer, String msg) {
   ch = (char) chi
 
 #define UntilOrEof(tok,...) \
-  if(ch == '"') { chi = _next(s, lexer); ch = (char)chi;} \
+  isString = ch == '"'; \
+  if(isString) { chi = _next(s, lexer); ch = (char)chi;} \
   int start = NextChar[lexer] - 1; \
   while((__VA_ARGS__) && (chi != -1)) { \
     chi = _next(s, lexer); ch = (char) chi; \
+    if(isString && ch == '\\') { chi = _next(s, lexer);chi = _next(s, lexer); ch = (char)chi;} \
   } \
-  int end         = NextChar[lexer]; \
-  NextChar[lexer] = end - (ch == '"' ? 0 : 1); \
+  int endToken    = NextChar[lexer] - 2; \
+  NextChar[lexer] = endToken + (isString && !(chi == -1) ? 2 : 1); \
   TokId[lexer]    = tok; \
-  Value[lexer]    = s[start .. end - 2]  
+  Value[lexer]    = endToken > start ? s[start .. endToken] : ""
 
 int Consume(int lexer) {
   String s  = Code[lexer];
   int chi   = _next(s, lexer);
   char ch   = 0;
+  bool isString = false;
 
   RetIfEof("");
 
