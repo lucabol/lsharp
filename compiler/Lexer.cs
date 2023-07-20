@@ -24,16 +24,17 @@ enum TokenId {
 String[] TokenNames = { Tokens };
 #undef X
 
-Struct6(5,
+Struct7(MAXLEXERS,
     String, Code,
     int,    NextChar,
     String, Value,
+    String, Spaces,
     int,    TokId,
     int,    Line,
     int,    Column
     )
 
-int New(String code) { return _New(code, 0, "", 0, 1, 0); }
+int New(String code) { return _New(code, 0, "", "", 0, 1, 0); }
 
 int _next(String s, int lexer) {
   int idx         = NextChar[lexer];
@@ -54,8 +55,6 @@ int _next(String s, int lexer) {
   }
   return s[idx];
 }
-
-char[] _tmpS[1];
 
 String _lastLine(int lexer) {
   String c = Code[lexer];
@@ -116,13 +115,15 @@ int Error(int lexer, String msg) {
   int endToken    = NextChar[lexer] - 2; \
   NextChar[lexer] = endToken + (isString && !(chi == -1) ? 2 : 1); \
   TokId[lexer]    = tok; \
-  Value[lexer]    = endToken > start ? s[start .. endToken] : ""
+  Value[lexer]    = endToken >= start ? s[start .. endToken] : ""
 
 int Consume(int lexer) {
-  String s  = Code[lexer];
-  int chi   = _next(s, lexer);
-  char ch   = 0;
-  bool isString = false;
+  String s       = Code[lexer];
+  int spaceStart = NextChar[lexer];
+  int chi        = _next(s, lexer);
+  char ch        = 0;
+  bool isString  = false;
+  Spaces[lexer]  = "";
 
   RetIfEof("");
 
@@ -131,6 +132,8 @@ int Consume(int lexer) {
     chi = _next(s, lexer);
     RetIfEof("");
   }
+  int spaceEnd = NextChar[lexer] - 2;
+  Spaces[lexer] = spaceEnd >= spaceStart ? s[spaceStart .. spaceEnd] : "";
 
   // Is it a decimal number?
   if(Os.IsDigit(ch)) {
@@ -155,19 +158,23 @@ int Consume(int lexer) {
   }
   
   // Else it is a punctuation
+  int charPos  = NextChar[lexer] - 1;
   TokId[lexer] = ch;
-  _tmpS[0]     = ch;
-  Value[lexer] = _tmpS;
+
+  Value[lexer]     = s[charPos .. charPos];
   return ch;
 }
 
 TokenId PeekId(int lexer) {
-
   return TokId[lexer];
 }
 
 String PeekValue(int lexer) {
   return Value[lexer];
+}
+
+String PeekSpaces(int lexer) {
+  return Spaces[lexer];
 }
 
 String TokenName(TokenId id) {

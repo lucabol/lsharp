@@ -1,6 +1,7 @@
 using stdio.h;
 using stdlib.h;
 using ctype.h;
+using string.h;
 
 void Die(String s) {
   PrintErr(s);
@@ -8,10 +9,17 @@ void Die(String s) {
 }
 
 void Print(String s) {
-  fwrite(___ptr s, 1, ___len s, stdio.stdout);
+  stdio.fwrite(___ptr s, 1, ___len s, stdio.stdout);
+  stdio.fflush(stdio.stdout);
+}
+void PrintLn(String s) {
+  stdio.fwrite(___ptr s, 1, ___len s, stdio.stdout);
+  stdio.fwrite(___ptr "\n", 1, 1, stdio.stdout);
+  stdio.fflush(stdio.stdout);
 }
 void PrintErr(String s) {
-  fwrite(___ptr s, 1, ___len s, stdio.stderr);
+  stdio.fwrite(___ptr s, 1, ___len s, stdio.stderr);
+  stdio.fflush(stdio.stderr);
 }
 
 String SlurpFile(String path, String buffer) {
@@ -38,10 +46,6 @@ String SlurpFile(String path, String buffer) {
     return buffer[0 .. len];
 }
 
-bool StringEq(String a, String b) {
-  return !`memcmp(a.ptr, b.ptr, a.len)`;
-}
-
 bool IsSpace(char c) { return ctype.isspace(c);}
 bool IsDigit(char c) { return ctype.isdigit(c);}
 bool IsAlpha(char c) { return ctype.isalpha(c);}
@@ -53,4 +57,20 @@ String ItoA(long n, String buf) {
   }
   `buf.len` = len;
   return buf;
+}
+
+bool StringEq(String a, String b) {
+  return !`memcmp(a.ptr, b.ptr, a.len)`;
+}
+
+// Copy __len src chars to the start of dest, doesn't modify __len dest
+// Returns a String(__ptr dest, __len src)
+String StringCopy(String src, String dest) {
+  int len = ___len src;
+  if(len > ___len dest) {
+    Die("RUNTIME ERROR: Trying to copy a string to a smaller one.");
+  }
+
+  `memcpy(dest.ptr, src.ptr, len);`
+  return dest[0 .. (len == 0 ? 0 : len - 1)];
 }

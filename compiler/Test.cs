@@ -1,11 +1,14 @@
 using Os;
 using Lexer;
 using Keywords;
+using Buffer;
 
 void All() {
   KeywordsT();
   FileSlurp();
   LexerT();
+  Strings();
+  Buffers();
 
   Os.Print("All tests passed!");
 }
@@ -41,9 +44,31 @@ void LexerT() {
   int wr = Lexer.Consume(l3);
   tassert(wr == -1);
   
-  int l4 = Lexer.New("\"\" \"bo\nb\" \" \"");
+  int l4 = Lexer.New("\"\" \"bo\nb\" \"\"");
   TLex(l4,TokStringConst,"");TLex(l4,TokStringConst,"bo\nb");TLex(l4,TokStringConst,"");
-  
+
+  String s = "int i  34 ,  \"bob\" while";
+  int ll = Lexer.New(s);
+
+  char[] buf[100];
+  int b = Buffer.New(buf);
+
+  while(Lexer.Consume(ll) != Eof) {
+    String ts  = Lexer.PeekSpaces(ll);
+    String str = Lexer.PeekId(ll) == TokStringConst ? "\"" : ""; 
+
+    Buffer.Push(b, ts);
+    ts = Lexer.PeekValue(ll);
+
+    Buffer.Push(b, str);
+    Buffer.Push(b, ts);
+    Buffer.Push(b, str);
+  }
+  String ts  = Lexer.PeekSpaces(ll);
+  Buffer.Push(b, ts);
+
+  String ss = Buffer.ToString(b);
+  tassert(Os.StringEq(ss,s));
 }
 
 void KeywordsT() {
@@ -52,4 +77,30 @@ void KeywordsT() {
   tassert(Keywords.IsKeyword("while"));
 
   tassert(!Keywords.IsKeyword("xx"));
+}
+
+void Strings() {
+  String s = "abc";
+  char[] d[10]; Os.StringCopy("kadef", d);
+  String c = Os.StringCopy(s, d);
+
+  tassert(Os.StringEq(s,c));
+  tassert(Os.StringEq(d[3 .. 4],"ef"));
+}
+
+void Buffers() {
+  char[] backS[100];
+  int b = Buffer.New(backS);
+
+  String s = Buffer.Push(b, "Hello");
+  tassert(Os.StringEq(s, "Hello"));
+
+  s = Buffer.Push(b, " world");
+  tassert(Os.StringEq(s, " world"));
+  tassert(Os.StringEq(Buffer.ToString(b), "Hello world"));
+
+
+  s = Buffer.Push(b, "");
+  tassert(Os.StringEq(s, ""));
+  tassert(Os.StringEq(Buffer.ToString(b), "Hello world"));
 }
