@@ -47,7 +47,7 @@ void LexerT() {
   int l4 = Lexer.New("\"\" \"bo\nb\" \"\"");
   TLex(l4,TokStringConst,"");TLex(l4,TokStringConst,"bo\nb");TLex(l4,TokStringConst,"");
 
-  String s = "int i  34 ,  \"bob\" while";
+  String s = "int i  34 ,  \"bob\" while   ";
   int ll = Lexer.New(s);
 
   char[] buf[100];
