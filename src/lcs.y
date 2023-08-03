@@ -228,8 +228,9 @@ param_list
   ;
 
 paramdecl
-  : type IDENTIFIER               { NTT(ParamDef,$$,$1,$2) }
-  | type IDENTIFIER '[' ']'       { NTT(ParamRefDef,$$,$1,$2,$3,$4) }
+  : valuetype IDENTIFIER               { NTT(ParamDef,$$,$1,$2) }
+  | valuetype IDENTIFIER '[' ']'       { NTT(ParamRefDef,$$,$1,$2,$3,$4) }
+  | reftype IDENTIFIER                 { NTT(ParamRefDef,$$,$1,$2) }
   | IDENTIFIER IDENTIFIER         { NTT(ParamDef,$$,$1,$2) }
   | IDENTIFIER IDENTIFIER '[' ']' { NTT(ParamRefDef,$$,$1,$2,$3,$4) }
   ;

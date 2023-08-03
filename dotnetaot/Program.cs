@@ -1,18 +1,15 @@
 
 int main() {
-  long rounds = 1000000000;
+  long n = 1000000000;
 
-  double pi = 1;
-  double x  = 1;
-  long i     = 0;
-
-  for (i = 2; i < rounds + 2; i++) {
-      x  *= -1;
-      pi += (x / (2 * (double)i - 1));
-  }
-
-  pi *= 4;
-  return (int)pi;
+  double sum = 0.0;
+  double flip = -1.0;
+  long i;
+  for (i = 1; i <= n; i++) {    
+      flip *= -1.0;        
+      sum += flip / (double)(2*i - 1);               
+  }  
+  return (int)sum;
 }
 
 #if NET

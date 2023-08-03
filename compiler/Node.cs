@@ -18,18 +18,20 @@ Struct2(MAXNODES,
 int[] Children[MAXCHILDREN];
 int   ChildIdx = 0;
 
-int AddChild(int child) {
-  if(ChildIdx >= MAXCHILDREN) {
-    Die("Too many nodes. Increase MAXCHILDREN.");
+int _AddChildren(int[] children) {
+  int firstChild = ChildIdx;
+  int i;
+  for(i = 0; i < ___len children; i++) {
+    Children[ChildIdx] = children[i];
+    ChildIdx += 1;
   }
-  int v = ChildIdx;
-  ChildIdx += 1;
-  return v;
+  Children[ChildIdx] = 0;
+  return firstChild;
 }
 
-int CreateNode(NodeIdType type, int childId) {
+int CreateNode(NodeIdType type, int[] children) {
 
-  int child = AddChild(childId);
-  int node = _New(type, child);
+  int firstChild = _AddChildren(children);
+  int node = _New(type, firstChild);
   return node;
 }
