@@ -2,6 +2,7 @@ using Os;
 using Lexer;
 using Keywords;
 using Buffer;
+using Token;
 
 void All() {
   KeywordsT();
@@ -9,6 +10,7 @@ void All() {
   LexerT();
   Strings();
   Buffers();
+  TokenT();
 
   Os.Print("All tests passed!");
 }
@@ -69,6 +71,21 @@ void LexerT() {
 
   String ss = Buffer.ToString(b);
   tassert(Os.StringEq(ss,s));
+}
+
+#define TEQ(t, s)    tassert(Os.StringEq(Token.Value[t], s))
+#define TPEEKEQ(l,s) TEQ(Token.Peek(l),s)
+#define TCONSEQ(l,s) { int k = Token.Consume(l); String v = Token.Value[k]; tassert(Os.StringEq(v,s)); }
+
+void TokenT() {
+  int l  = Lexer.New("1 2 3");
+  TPEEKEQ(l,"1");
+  TPEEKEQ(l,"1");
+  TCONSEQ(l,"1");
+  TPEEKEQ(l,"2");
+  TCONSEQ(l,"2");
+  TPEEKEQ(l,"3");
+  TCONSEQ(l,"3");
 }
 
 void KeywordsT() {

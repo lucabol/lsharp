@@ -1,7 +1,7 @@
 #define KB 1024
 #define MB KB * KB
 
-#define MAXLEXERS  5         // How many lexers in play at one time 
+#define MAXLEXERS  50         // How many lexers in play at one time 
 #define MAXBUFFERS 100       // How many buffers in play at one time 
                          
 #define MAXTOKENS   1*MB           // Max number of Tokens
