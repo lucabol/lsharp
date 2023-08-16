@@ -82,10 +82,13 @@ void TokenT() {
   TPEEKEQ(l,"1");
   TPEEKEQ(l,"1");
   TCONSEQ(l,"1");
+  int state = Token.SaveState(l);
   TPEEKEQ(l,"2");
   TCONSEQ(l,"2");
   TPEEKEQ(l,"3");
   TCONSEQ(l,"3");
+  Token.RestoreState(l,state);
+  TPEEKEQ(l,"2");
 }
 
 void KeywordsT() {
