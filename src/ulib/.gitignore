@@ -1,0 +1,6 @@
+debug/*
+release/*
+obj/*
+misra.txt
+.cache
+breaks
